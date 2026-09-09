@@ -1,0 +1,198 @@
+import type { Kid } from '../types';
+import { POEMS } from './poems';
+
+/** 弟弟背的 10 首（启蒙 stage 1 的前 10 首） */
+const HENG_POEMS = POEMS.filter((p) => p.stage === 1)
+  .slice(0, 10)
+  .map((p) => p.id);
+
+/** 哥哥背的 30 首（启蒙里剩下的 + 进阶，共 30 首） */
+const CUN_POEMS = [
+  ...POEMS.filter((p) => p.stage === 1).slice(10),
+  ...POEMS.filter((p) => p.stage === 2),
+]
+  .slice(0, 30)
+  .map((p) => p.id);
+
+export const KIDS: Kid[] = [
+  {
+    id: 'cun',
+    name: '李一存',
+    nick: '存哥',
+    age: 7,
+    grade: '二年级',
+    avatar: '🦁',
+    color: '#ff8c42',
+    color2: '#ffd166',
+    slogan: '一天不断，越跳越强！',
+    features: ['words', 'math', 'poems'],
+    poemIds: CUN_POEMS,
+    hanziCount: 0,
+    wordCount: 300,
+    daily: [
+      {
+        id: 'rope800',
+        title: '跳绳 800 个',
+        emoji: '🪢',
+        kind: 'counter',
+        stars: 3,
+        target: 800,
+        steps: [10, 50, 100],
+        unit: '个',
+        tip: '可以分 4 组，每组 200 个，中间喝口水～',
+      },
+      {
+        id: 'rope1min',
+        title: '跳绳一分钟挑战',
+        emoji: '⏱️',
+        kind: 'timer',
+        stars: 2,
+        seconds: 60,
+        unit: '个',
+        tip: '一分钟内尽可能多跳，破纪录有惊喜！',
+      },
+      {
+        id: 'words3',
+        title: '背英语单词',
+        emoji: '🔤',
+        kind: 'study',
+        stars: 2,
+        route: 'words',
+        dailyGoal: 3,
+        tip: '每天 3 个新单词，半年就是 300 个！',
+      },
+      {
+        id: 'poemLine',
+        title: '背古诗',
+        emoji: '📜',
+        kind: 'study',
+        stars: 2,
+        route: 'poems',
+        tip: '两天背一首，30 首轻松拿下。',
+      },
+      {
+        id: 'multi',
+        title: '乘法口诀',
+        emoji: '✖️',
+        kind: 'study',
+        stars: 2,
+        route: 'math',
+        tip: '先背一列，再玩闯关小测。',
+      },
+    ],
+    weekly: [
+      {
+        id: 'run',
+        title: '跑步训练',
+        emoji: '🏃',
+        timesPerWeek: 1,
+        stars: 4,
+        tip: '热身 5 分钟，慢跑 10~15 分钟，拉伸收尾。',
+      },
+      {
+        id: 'chore',
+        title: '刷碗 / 做饭',
+        emoji: '🍽️',
+        timesPerWeek: 1,
+        stars: 4,
+        tip: '自己动手，爸爸妈妈帮你拍照留念～',
+      },
+    ],
+    goals: [
+      { id: 'g-words', title: '英语单词', emoji: '🔤', target: 300, unit: '个', kind: 'words', route: 'words' },
+      { id: 'g-poems', title: '古诗', emoji: '📜', target: 30, unit: '首', kind: 'poems', route: 'poems' },
+      { id: 'g-math', title: '乘法口诀', emoji: '✖️', target: 45, unit: '句', kind: 'math', route: 'math' },
+    ],
+  },
+  {
+    id: 'heng',
+    name: '李一珩',
+    nick: '珩宝',
+    age: 5,
+    grade: '幼儿园大班',
+    avatar: '🐯',
+    color: '#4cc9f0',
+    color2: '#90f1ef',
+    slogan: '我要学会连跳啦！',
+    features: ['hanzi', 'pinyin', 'poems'],
+    poemIds: HENG_POEMS,
+    hanziCount: 100,
+    wordCount: 0,
+    daily: [
+      {
+        id: 'rope100',
+        title: '跳绳 100 个',
+        emoji: '🪢',
+        kind: 'counter',
+        stars: 3,
+        target: 100,
+        steps: [1, 5, 10],
+        unit: '个',
+        tip: '一次跳不完没关系，分几次也算完成！',
+      },
+      {
+        id: 'ropeDouble',
+        title: '练习连跳',
+        emoji: '✨',
+        kind: 'simple',
+        stars: 2,
+        tip: '先练"跳一下停一下"，再试试连着跳 3 下。',
+      },
+      {
+        id: 'hanzi1',
+        title: '认汉字',
+        emoji: '🀄',
+        kind: 'study',
+        stars: 2,
+        route: 'hanzi',
+        dailyGoal: 1,
+        tip: '每天认 1 个新字，半年认满 100 个！',
+      },
+      {
+        id: 'pinyin',
+        title: '拼音字母表',
+        emoji: '🔠',
+        kind: 'study',
+        stars: 2,
+        route: 'pinyin',
+        tip: '跟着读一读，会读的点亮它。',
+      },
+      {
+        id: 'poemLine',
+        title: '背古诗',
+        emoji: '📜',
+        kind: 'study',
+        stars: 2,
+        route: 'poems',
+        tip: '一周一首，10 首没问题！',
+      },
+    ],
+    weekly: [
+      {
+        id: 'bar',
+        title: '吊单杠',
+        emoji: '🐒',
+        timesPerWeek: 1,
+        stars: 4,
+        tip: '先吊 10 秒，慢慢加到 30 秒，像小猴子一样！',
+      },
+      {
+        id: 'chore',
+        title: '刷碗 / 做饭',
+        emoji: '🍽️',
+        timesPerWeek: 1,
+        stars: 4,
+        tip: '洗自己的小碗也算，注意别打碎哦～',
+      },
+    ],
+    goals: [
+      { id: 'g-hanzi', title: '认汉字', emoji: '🀄', target: 100, unit: '个', kind: 'hanzi', route: 'hanzi' },
+      { id: 'g-pinyin', title: '拼音字母', emoji: '🔠', target: 63, unit: '个', kind: 'pinyin', route: 'pinyin' },
+      { id: 'g-poems', title: '古诗', emoji: '📜', target: 10, unit: '首', kind: 'poems', route: 'poems' },
+    ],
+  },
+];
+
+export function getKid(id: string | null | undefined): Kid | undefined {
+  return KIDS.find((k) => k.id === id);
+}

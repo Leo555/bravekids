@@ -1,0 +1,19 @@
+{
+  "name": "BraveKids · 小勇士打卡乐园",
+  "short_name": "小勇士打卡",
+  "description": "李一存 & 李一珩 2026 下半年运动与学习打卡",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#fff7ec",
+  "theme_color": "#ffb703",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
