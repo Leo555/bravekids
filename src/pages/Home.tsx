@@ -2,12 +2,11 @@ import { useState } from 'react';
 import type { DailyTask, Kid } from '../types';
 import {
   bumpWeekly,
-  go,
   resetKid,
-  selectKid,
   setDaily,
   useAppState,
 } from '../store';
+import { go, goKids } from '../router';
 import { AppBar, Bar, Ring, Sheet } from '../components/ui';
 import CounterSheet from '../components/CounterSheet';
 import TimerSheet from '../components/TimerSheet';
@@ -60,10 +59,7 @@ export default function Home({ kid }: { kid: Kid }) {
     <>
       <AppBar
         title={`${kid.avatar} ${kid.name}`}
-        onBack={() => {
-          selectKid(null);
-          go('kids');
-        }}
+        onBack={() => goKids()}
         right={
           <>
             <button className="pill" onClick={() => go('badges')}>

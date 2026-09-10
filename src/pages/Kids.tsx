@@ -1,5 +1,6 @@
 import { KIDS } from '../data/kids';
-import { go, selectKid, useAppState } from '../store';
+import { useAppState } from '../store';
+import { goKid } from '../router';
 import { levelOf, starsOf } from '../lib/progress';
 import { sfxDing } from '../lib/sound';
 import { prettyDate } from '../lib/date';
@@ -37,8 +38,7 @@ export default function Kids() {
               }}
               onClick={() => {
                 sfxDing();
-                selectKid(kid.id);
-                go('home');
+                goKid(kid.id);
               }}
             >
               <span className="blob" style={{ width: 140, height: 140, right: -40, top: -40 }} />

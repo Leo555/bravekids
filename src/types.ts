@@ -171,6 +171,5 @@ export interface KidState {
 
 export interface AppState {
   version: number;
-  current: KidId | null;
   kids: Record<KidId, KidState>;
 }

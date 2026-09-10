@@ -5,7 +5,7 @@
  * 打开 App 时从云端拉一份放内存，任何改动立刻回写云端。
  */
 import { useSyncExternalStore } from 'react';
-import type { AppState, KidId, KidState, Route } from './types';
+import type { AppState, KidId, KidState } from './types';
 import { today, weekKey } from './lib/date';
 import { loadKids, saveKid, watchLifecycle } from './lib/cloud';
 
@@ -26,7 +26,6 @@ function emptyKid(): KidState {
 function initial(): AppState {
   return {
     version: 1,
-    current: null,
     kids: { cun: emptyKid(), heng: emptyKid() },
   };
 }
@@ -81,16 +80,14 @@ function normalizeKid(raw: unknown): KidState {
 }
 
 /**
- * 把任意来源（localStorage / 云端）的数据整理成合法的 AppState。
+ * 把任意来源（云端）的数据整理成合法的 AppState。
  * 存档一旦损坏或结构变化，也不会让页面白屏。
  */
 export function normalizeState(raw: unknown): AppState {
   const p = (raw && typeof raw === 'object' ? raw : {}) as Partial<AppState>;
   const kids = (p.kids || {}) as Partial<AppState['kids']>;
-  const current = p.current === 'cun' || p.current === 'heng' ? p.current : null;
   return {
     version: num(p.version) || 1,
-    current,
     kids: {
       cun: normalizeKid(kids.cun),
       heng: normalizeKid(kids.heng),
@@ -143,8 +140,7 @@ export async function reload(): Promise<void> {
     readyListeners.forEach((l) => l());
     return;
   }
-  // current 是「这台设备正在给谁打卡」，属于界面状态，不从云端来
-  state = normalizeState({ current: state.current, kids });
+  state = normalizeState({ kids });
   ready = true;
   emit();
   readyListeners.forEach((l) => l());
@@ -164,12 +160,6 @@ function patchKid(id: KidId, fn: (k: KidState) => KidState) {
   state = { ...state, kids: { ...state.kids, [id]: nextKid } };
   emit();
   saveKid(id, nextKid);
-}
-
-export function selectKid(id: KidId | null) {
-  // 只影响当前界面，不需要写云端
-  state = { ...state, current: id };
-  emit();
 }
 
 /** 每日任务：设置完成状态 / 数值 */
@@ -236,52 +226,4 @@ export function setQuizBest(id: KidId, quiz: string, score: number) {
 
 export function resetKid(id: KidId) {
   patchKid(id, () => emptyKid());
-}
-
-/* --------------------------- 路由 --------------------------- */
-
-export interface RouteState {
-  route: Route;
-  param?: string;
-}
-
-function parseHash(): RouteState {
-  const h = window.location.hash.replace(/^#\/?/, '');
-  const [route, param] = h.split('/');
-  const valid: Route[] = ['kids', 'home', 'poems', 'hanzi', 'words', 'math', 'pinyin', 'badges'];
-  return {
-    route: (valid.includes(route as Route) ? route : 'kids') as Route,
-    param: param || undefined,
-  };
-}
-
-let routeState: RouteState = typeof window === 'undefined' ? { route: 'kids' } : parseHash();
-const routeListeners = new Set<() => void>();
-
-if (typeof window !== 'undefined') {
-  window.addEventListener('hashchange', () => {
-    routeState = parseHash();
-    routeListeners.forEach((l) => l());
-  });
-}
-
-export function useRoute(): RouteState {
-  return useSyncExternalStore(
-    (cb) => {
-      routeListeners.add(cb);
-      return () => routeListeners.delete(cb);
-    },
-    () => routeState,
-    () => routeState,
-  );
-}
-
-export function go(route: Route, param?: string) {
-  window.location.hash = `#/${route}${param ? `/${param}` : ''}`;
-  window.scrollTo({ top: 0 });
-}
-
-export function back() {
-  if (window.history.length > 1) window.history.back();
-  else go('home');
 }

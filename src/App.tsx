@@ -1,6 +1,7 @@
 import { Suspense, lazy, useEffect } from 'react';
 import { getKid } from './data/kids';
-import { go, useAppState, useReady, useRoute } from './store';
+import { useReady } from './store';
+import { goKids, go, useRoute } from './router';
 import { themeStyle } from './components/ui';
 import Boot from './components/Boot';
 import CloudBanner from './components/CloudBanner';
@@ -19,6 +20,9 @@ const MathPage = lazy(() => import('./pages/MathPage'));
 const PinyinPage = lazy(() => import('./pages/Pinyin'));
 const Badges = lazy(() => import('./pages/Badges'));
 
+/** 勋章页两个孩子都有，其余学习页要看 kid.features 是否开启 */
+const ALWAYS_ON = ['home', 'badges'];
+
 function PageLoading() {
   return (
     <div className="page-loading">
@@ -31,15 +35,27 @@ function PageLoading() {
 }
 
 export default function App() {
-  const app = useAppState();
   const ready = useReady();
-  const { route } = useRoute();
-  const kid = getKid(app.current);
+  const { kid: kidId, route, param } = useRoute();
+  const kid = kidId ? getKid(kidId) : null;
 
-  // 没选孩子时，任何页面都回到选人页
+  /**
+   * 路由守卫：URL 是可以被随意修改的（家长手输、旧书签、分享链接），
+   * 所以进页面前要确认这个孩子确实有这一项。
+   * 比如 5 岁的弟弟没有英语单词任务，就不该能打开 300 词的单词页。
+   */
+  const allowed = kid ? ALWAYS_ON.includes(route) || kid.features.includes(route) : false;
+
   useEffect(() => {
-    if (ready && !kid && route !== 'kids') go('kids');
-  }, [ready, kid, route]);
+    if (!ready) return;
+    if (!kid) {
+      // 地址里没有合法的孩子 → 回选人页
+      if (route !== 'kids') goKids();
+      return;
+    }
+    // 这个孩子没开这一项 → 退回他自己的今日打卡页
+    if (!allowed) go('home');
+  }, [ready, kid, route, allowed]);
 
   // 数据只存云端，没读到就先不渲染业务页面
   if (!ready) return <Boot />;
@@ -47,13 +63,13 @@ export default function App() {
   const style = kid ? themeStyle(kid.color, kid.color2) : undefined;
 
   let page = <Kids />;
-  if (kid) {
+  if (kid && allowed) {
     switch (route) {
       case 'home':
         page = <Home kid={kid} />;
         break;
       case 'poems':
-        page = <Poems kid={kid} />;
+        page = <Poems kid={kid} openId={param} />;
         break;
       case 'hanzi':
         page = <HanziPage kid={kid} />;

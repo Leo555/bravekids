@@ -1,6 +1,7 @@
 import type { Kid } from '../types';
 import { AppBar, Bar } from '../components/ui';
-import { back, useAppState } from '../store';
+import { useAppState } from '../store';
+import { back } from '../router';
 import { badgesOf, goalDone, levelOf, statsOf } from '../lib/progress';
 import { lastDays, parseKey } from '../lib/date';
 

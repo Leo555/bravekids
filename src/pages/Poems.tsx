@@ -2,7 +2,8 @@ import { useMemo, useState } from 'react';
 import type { Kid, Poem, PoemLine } from '../types';
 import { POEMS } from '../data/poems';
 import { AppBar, Bar, Sheet } from '../components/ui';
-import { back, go, toggleLearned, useAppState } from '../store';
+import { toggleLearned, useAppState } from '../store';
+import { back, go } from '../router';
 import { speak, stopSpeak } from '../lib/speech';
 import { sfxDing, sfxRight, sfxTap, sfxWin, sfxWrong } from '../lib/sound';
 import { confettiBurst } from '../lib/celebrate';
@@ -249,7 +250,7 @@ function Detail({
   );
 }
 
-export default function Poems({ kid }: { kid: Kid }) {
+export default function Poems({ kid, openId: routeId }: { kid: Kid; openId?: string }) {
   const app = useAppState();
   const st = app.kids[kid.id];
   // 按 poemPlan 解析出这个孩子要背的诗：启蒙档跳过前 skipStage1 首，
@@ -264,8 +265,12 @@ export default function Poems({ kid }: { kid: Kid }) {
     const chosen = new Set(list.map((p) => p.id));
     return POEMS.filter((p) => !chosen.has(p.id));
   }, [list]);
-  const [openId, setOpenId] = useState<string | null>(null);
   const [showExtra, setShowExtra] = useState(false);
+
+  // 当前翻开哪一首由 URL 决定（#/cun/poems/jingyesi）：
+  // 读到一半刷新不会丢，也能把某一首直接存成书签发给家长
+  const openId = routeId ?? null;
+  const setOpenId = (id: string | null) => go('poems', id ?? undefined);
 
   const all = showExtra ? [...list, ...extra] : list;
   const idx = all.findIndex((p) => p.id === openId);
