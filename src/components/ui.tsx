@@ -57,7 +57,7 @@ export function Ring({
           cy={size / 2}
           r={r}
           fill="none"
-          stroke="rgba(51,49,59,0.08)"
+          stroke="rgba(35,40,56,0.08)"
           strokeWidth={stroke}
         />
         <circle
@@ -161,6 +161,24 @@ export function Empty({ text, emoji = '🐣' }: { text: string; emoji?: string }
   );
 }
 
+/** hex -> rgba，用于生成主题色的半透明变量 */
+function alpha(hex: string, a: number): string {
+  const h = hex.replace('#', '');
+  const full = h.length === 3 ? h.split('').map((c) => c + c).join('') : h;
+  const n = parseInt(full, 16);
+  const r = (n >> 16) & 255;
+  const g = (n >> 8) & 255;
+  const b = n & 255;
+  return `rgba(${r}, ${g}, ${b}, ${a})`;
+}
+
 export function themeStyle(color: string, color2: string): CSSProperties {
-  return { ['--c1' as string]: color, ['--c2' as string]: color2 } as CSSProperties;
+  return {
+    ['--c1' as string]: color,
+    ['--c2' as string]: color2,
+    ['--c1-a12' as string]: alpha(color, 0.12),
+    ['--c1-a28' as string]: alpha(color, 0.28),
+    ['--c2-a20' as string]: alpha(color2, 0.2),
+    ['--c2-a36' as string]: alpha(color2, 0.36),
+  } as CSSProperties;
 }

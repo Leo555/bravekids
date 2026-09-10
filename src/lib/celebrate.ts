@@ -1,6 +1,6 @@
 /** 撒花 / 飞星星：直接操作 DOM，任何地方都能调用 */
 
-const COLORS = ['#ff8c42', '#ffd166', '#06d6a0', '#4cc9f0', '#f72585', '#b5179e'];
+const COLORS = ['#f97452', '#ffc15e', '#2fbf71', '#3eb8f0', '#7c8cf8', '#ff8fb1'];
 
 export function confettiBurst(count = 36) {
   if (typeof document === 'undefined') return;

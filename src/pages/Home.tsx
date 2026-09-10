@@ -11,10 +11,12 @@ import {
 import { AppBar, Bar, Ring, Sheet } from '../components/ui';
 import CounterSheet from '../components/CounterSheet';
 import TimerSheet from '../components/TimerSheet';
+import { SyncLine } from '../components/SyncBadge';
 import { goalDone, levelOf, starsOf, statsOf, weeklyCount } from '../lib/progress';
 import { WEEK_LABEL, parseKey, prettyDate, today, weekDays } from '../lib/date';
 import { sfxDing, sfxTap } from '../lib/sound';
 import { confettiBurst, flyStarFromEvent } from '../lib/celebrate';
+import { praise } from '../lib/speech';
 
 export default function Home({ kid }: { kid: Kid }) {
   const app = useAppState();
@@ -34,9 +36,11 @@ export default function Home({ kid }: { kid: Kid }) {
     const was = !!dayRec[task.id]?.done;
     setDaily(kid.id, task.id, { done: !was });
     if (!was) {
+      const allNow = doneCount + 1 === kid.daily.length;
       sfxDing();
       flyStarFromEvent(e, '⭐');
-      if (doneCount + 1 === kid.daily.length) confettiBurst();
+      if (allNow) confettiBurst();
+      praise(kid.nick, allNow);
     } else {
       sfxTap();
     }
@@ -74,7 +78,7 @@ export default function Home({ kid }: { kid: Kid }) {
 
       <div className="wrap">
         {/* 顶部总览 */}
-        <div className="card" style={{ marginTop: 14 }}>
+        <div className="card hero" style={{ marginTop: 14 }}>
           <div className="row" style={{ alignItems: 'center', gap: 16 }}>
             <Ring progress={doneCount / kid.daily.length} size={116} stroke={13}>
               <div>
@@ -202,6 +206,7 @@ export default function Home({ kid }: { kid: Kid }) {
                     sfxDing();
                     flyStarFromEvent(e, task.emoji);
                     if (n + 1 === task.timesPerWeek) confettiBurst(24);
+                    praise(kid.nick);
                   }}
                 >
                   完成 1 次
@@ -302,6 +307,7 @@ export default function Home({ kid }: { kid: Kid }) {
               if (!was) {
                 sfxDing();
                 flyStarFromEvent(e, '⭐');
+                praise(kid.nick);
               }
             }
             setTipTask(null);
@@ -312,9 +318,7 @@ export default function Home({ kid }: { kid: Kid }) {
       </Sheet>
 
       <Sheet open={setting} onClose={() => setSetting(false)} title="⚙️ 家长设置">
-        <p className="muted">
-          数据保存在这台设备的浏览器里，不会上传。可以把网页"添加到主屏幕"，用起来像 App 一样。
-        </p>
+        <SyncLine />
         <div className="card tight">
           <b>{kid.name} 的统计</b>
           <p className="muted" style={{ marginTop: 6 }}>

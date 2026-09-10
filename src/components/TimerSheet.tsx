@@ -5,6 +5,7 @@ import { setBestJumpMinute, setDaily, useAppState } from '../store';
 import { today } from '../lib/date';
 import { sfxBeep, sfxCount, sfxDing, sfxWin } from '../lib/sound';
 import { confettiBurst, flyStarFromEvent } from '../lib/celebrate';
+import { praise } from '../lib/speech';
 
 export default function TimerSheet({
   kid,
@@ -65,6 +66,7 @@ export default function TimerSheet({
     setBestJumpMinute(kid.id, count);
     sfxDing();
     confettiBurst(28);
+    praise(kid.nick, count > best);
     onClose();
   }
 

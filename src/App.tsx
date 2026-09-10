@@ -1,7 +1,9 @@
 import { useEffect } from 'react';
 import { getKid } from './data/kids';
-import { go, useAppState, useRoute } from './store';
+import { go, useAppState, useReady, useRoute } from './store';
 import { themeStyle } from './components/ui';
+import Boot from './components/Boot';
+import CloudBanner from './components/CloudBanner';
 import Kids from './pages/Kids';
 import Home from './pages/Home';
 import Poems from './pages/Poems';
@@ -13,13 +15,17 @@ import Badges from './pages/Badges';
 
 export default function App() {
   const app = useAppState();
+  const ready = useReady();
   const { route } = useRoute();
   const kid = getKid(app.current);
 
   // 没选孩子时，任何页面都回到选人页
   useEffect(() => {
-    if (!kid && route !== 'kids') go('kids');
-  }, [kid, route]);
+    if (ready && !kid && route !== 'kids') go('kids');
+  }, [ready, kid, route]);
+
+  // 数据只存云端，没读到就先不渲染业务页面
+  if (!ready) return <Boot />;
 
   const style = kid ? themeStyle(kid.color, kid.color2) : undefined;
 
@@ -54,6 +60,7 @@ export default function App() {
 
   return (
     <div className="app" style={style}>
+      <CloudBanner />
       {page}
     </div>
   );

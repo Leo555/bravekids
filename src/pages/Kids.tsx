@@ -3,6 +3,7 @@ import { go, selectKid, useAppState } from '../store';
 import { levelOf, starsOf } from '../lib/progress';
 import { sfxDing } from '../lib/sound';
 import { prettyDate } from '../lib/date';
+import SyncBadge from '../components/SyncBadge';
 
 export default function Kids() {
   const app = useAppState();
@@ -18,6 +19,9 @@ export default function Kids() {
           小勇士打卡乐园
         </p>
         <p className="muted">{prettyDate()} · 2026 下半年运动学习计划</p>
+        <div style={{ marginTop: 10 }}>
+          <SyncBadge />
+        </div>
       </div>
 
       <div className="kid-grid">

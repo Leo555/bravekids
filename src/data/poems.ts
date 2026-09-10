@@ -2,7 +2,7 @@ import type { Poem } from '../types';
 
 /**
  * 古诗库
- * stage 1 = 启蒙（适合 5 岁的珩宝），stage 2 = 进阶（适合 7 岁的存哥）
+ * stage 1 = 启蒙（适合 5 岁的李一珩），stage 2 = 进阶（适合 7 岁的李一存）
  * pinyin 只写汉字的拼音，用空格分隔，标点在渲染时自动跳过。
  */
 export const POEMS: Poem[] = [

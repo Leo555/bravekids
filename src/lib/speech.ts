@@ -49,3 +49,39 @@ export function speak(text: string, opts: SpeakOptions = {}) {
 export function stopSpeak() {
   if (canSpeak()) window.speechSynthesis.cancel();
 }
+
+/* ------------------------- 打卡表扬语 ------------------------- */
+
+/** 普通打卡：随机一句，核心都是「你真棒」 */
+const PRAISE = [
+  '你真棒',
+  '哇，你真棒',
+  '你真棒，继续加油',
+  '太厉害啦，你真棒',
+  '你真棒，坚持得真好',
+];
+
+/** 今天全部完成 / 大目标达成时的加强版 */
+const PRAISE_BIG = [
+  '你真棒，今天全部完成啦',
+  '你真棒，今天太厉害了',
+  '你真棒，给你一百分',
+];
+
+let lastPraiseAt = 0;
+
+/**
+ * 打卡完成后夸一句「你真棒」。
+ * @param name 可选，孩子的小名，会念成「优优，你真棒！」
+ * @param big  是否用加强版（全部完成时）
+ */
+export function praise(name?: string, big = false) {
+  if (!canSpeak()) return;
+  const now = Date.now();
+  // 连续快速打卡时不要叠着念
+  if (now - lastPraiseAt < 1500) return;
+  lastPraiseAt = now;
+  const pool = big ? PRAISE_BIG : PRAISE;
+  const text = pool[Math.floor(Math.random() * pool.length)];
+  speak(name ? `${name}，${text}！` : `${text}！`, { rate: 0.95, pitch: 1.3 });
+}

@@ -1,12 +1,42 @@
 :root {
-  --c1: #ff8c42;
-  --c2: #ffd166;
-  --ink: #33313b;
-  --ink-2: #6b6875;
-  --paper: #fffdf8;
-  --line: rgba(51, 49, 59, 0.1);
-  --shadow: 0 8px 24px rgba(80, 60, 30, 0.12);
-  --shadow-lg: 0 16px 40px rgba(80, 60, 30, 0.18);
+  /* 主题色（跟随孩子，见 themeStyle） */
+  --c1: #f97452;
+  --c2: #ffc15e;
+  --c1-a12: rgba(249, 116, 82, 0.12);
+  --c1-a28: rgba(249, 116, 82, 0.28);
+  --c2-a20: rgba(255, 193, 94, 0.2);
+  --c2-a36: rgba(255, 193, 94, 0.36);
+
+  /* 中性色：干净的冷白底 + 深靛文字 */
+  --ink: #232838;
+  --ink-2: #767f91;
+  --paper: #ffffff;
+  --page-1: #fbfcfe;
+  --page-2: #f2f5fa;
+  --line: rgba(35, 40, 56, 0.08);
+  --shadow-sm: 0 2px 8px rgba(31, 41, 74, 0.07);
+  --shadow: 0 6px 20px rgba(31, 41, 74, 0.08);
+  --shadow-lg: 0 14px 36px rgba(31, 41, 74, 0.13);
+
+  /* 状态色 */
+  --ok: #2fbf71;
+  --ok-1: #f3fcf7;
+  --ok-2: #e4f8ed;
+  --ok-line: #a6e6c2;
+  --gold: #ffc94d;
+  --gold-1: #fff9e9;
+  --gold-2: #fff0cb;
+  --gold-line: #ffd98a;
+  --gold-ink: #8a6008;
+  --danger: #f4737b;
+
+  /* 古诗 / 汉字用的纸张暖色 */
+  --paper-warm-1: #fffdf7;
+  --paper-warm-2: #fff8ec;
+  --paper-warm-line: rgba(188, 156, 104, 0.22);
+  --py-ink: #a8762f;
+  --tian-line: #f6b9b9;
+
   --radius: 22px;
   --font-hand: 'Kaiti SC', 'STKaiti', KaiTi, 'Baoli SC', 'Songti SC', serif;
   --safe-b: env(safe-area-inset-bottom, 0px);
@@ -29,7 +59,7 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei',
     'Helvetica Neue', sans-serif;
   color: var(--ink);
-  background: #fff7ec;
+  background: var(--page-2);
   overscroll-behavior-y: none;
 }
 
@@ -50,8 +80,11 @@ button {
 
 .app {
   min-height: 100dvh;
-  background: radial-gradient(1200px 600px at 50% -10%, var(--c2) 0%, transparent 60%),
-    linear-gradient(180deg, #fff9f0 0%, #fff5e6 40%, #f7f3ff 100%);
+  /* 顶部一抹主题色光晕，其余保持干净的浅冷白，避免整屏染色 */
+  background: radial-gradient(760px 420px at 50% -12%, var(--c2-a36) 0%, transparent 72%),
+    radial-gradient(520px 320px at 88% 6%, var(--c1-a12) 0%, transparent 70%),
+    radial-gradient(620px 340px at 50% 106%, var(--c1-a12) 0%, transparent 72%),
+    linear-gradient(180deg, var(--page-1) 0%, var(--page-2) 100%);
   background-attachment: fixed;
   padding-bottom: calc(28px + var(--safe-b));
 }
@@ -71,7 +104,7 @@ button {
   gap: 10px;
   padding: 12px 16px;
   padding-top: calc(12px + env(safe-area-inset-top, 0px));
-  background: rgba(255, 253, 248, 0.86);
+  background: rgba(255, 255, 255, 0.82);
   backdrop-filter: saturate(160%) blur(12px);
   -webkit-backdrop-filter: saturate(160%) blur(12px);
   border-bottom: 1px solid var(--line);
@@ -93,7 +126,7 @@ button {
   place-items: center;
   font-size: 20px;
   background: #fff;
-  box-shadow: 0 2px 8px rgba(80, 60, 30, 0.12);
+  box-shadow: var(--shadow-sm), inset 0 0 0 1px var(--line);
   transition: transform 0.12s;
 }
 
@@ -110,7 +143,7 @@ button {
   background: #fff;
   font-weight: 800;
   font-size: 14px;
-  box-shadow: 0 2px 8px rgba(80, 60, 30, 0.12);
+  box-shadow: var(--shadow-sm), inset 0 0 0 1px var(--line);
 }
 
 /* ---------------- 卡片 ---------------- */
@@ -118,13 +151,19 @@ button {
 .card {
   background: var(--paper);
   border-radius: var(--radius);
-  box-shadow: var(--shadow);
+  box-shadow: var(--shadow), inset 0 0 0 1px var(--line);
   padding: 16px;
   margin: 14px 0;
 }
 
 .card.tight {
   padding: 12px;
+}
+
+/* 首页顶部总览卡：带一层主题浅色，视觉重心更突出 */
+.card.hero {
+  background: linear-gradient(150deg, #fff 34%, var(--c2-a20) 100%);
+  box-shadow: var(--shadow-lg), inset 0 0 0 1px var(--line);
 }
 
 .section-title {
@@ -161,24 +200,25 @@ button {
   border-radius: 16px;
   font-weight: 800;
   background: #fff;
-  box-shadow: 0 3px 10px rgba(80, 60, 30, 0.14);
+  box-shadow: var(--shadow-sm), inset 0 0 0 1px var(--line);
   transition: transform 0.12s, box-shadow 0.12s;
 }
 
 .btn:active {
   transform: translateY(2px) scale(0.98);
-  box-shadow: 0 1px 4px rgba(80, 60, 30, 0.14);
+  box-shadow: inset 0 0 0 1px var(--line);
 }
 
 .btn.primary {
-  background: linear-gradient(180deg, var(--c2), var(--c1));
+  background: linear-gradient(160deg, var(--c2), var(--c1));
   color: #fff;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 6px 16px var(--c1-a28);
 }
 
 .btn.ghost {
-  background: rgba(255, 255, 255, 0.6);
-  box-shadow: inset 0 0 0 2px var(--line);
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow: inset 0 0 0 1.5px var(--line);
 }
 
 .btn.block {
@@ -278,7 +318,7 @@ button {
   padding: 14px;
   border-radius: 20px;
   background: var(--paper);
-  box-shadow: var(--shadow);
+  box-shadow: var(--shadow), inset 0 0 0 1px var(--line);
   margin: 10px 0;
   transition: transform 0.15s;
 }
@@ -288,8 +328,8 @@ button {
 }
 
 .task.done {
-  background: linear-gradient(180deg, #f2fff4, #e9fbef);
-  box-shadow: inset 0 0 0 2px #9be3ae;
+  background: linear-gradient(180deg, var(--ok-1), var(--ok-2));
+  box-shadow: inset 0 0 0 1.5px var(--ok-line);
 }
 
 .task .emoji {
@@ -300,7 +340,7 @@ button {
   place-items: center;
   font-size: 28px;
   border-radius: 16px;
-  background: linear-gradient(180deg, #fff, #fff3dd);
+  background: linear-gradient(180deg, #fff, var(--c2-a20));
   box-shadow: inset 0 0 0 1px var(--line);
 }
 
@@ -333,9 +373,9 @@ button {
 }
 
 .check.on {
-  background: linear-gradient(180deg, #6ee7a0, #3ac97a);
+  background: linear-gradient(160deg, #5cd79a, var(--ok));
   color: #fff;
-  box-shadow: 0 4px 12px rgba(58, 201, 122, 0.4);
+  box-shadow: 0 5px 14px rgba(47, 191, 113, 0.35);
 }
 
 .check:active {
@@ -347,7 +387,7 @@ button {
   position: relative;
   height: 12px;
   border-radius: 999px;
-  background: rgba(51, 49, 59, 0.08);
+  background: rgba(35, 40, 56, 0.07);
   overflow: hidden;
 }
 
@@ -374,7 +414,7 @@ button {
 .week .d {
   padding: 8px 0 6px;
   border-radius: 14px;
-  background: rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.75);
   box-shadow: inset 0 0 0 1px var(--line);
   font-size: 12px;
   color: var(--ink-2);
@@ -387,13 +427,13 @@ button {
 }
 
 .week .d.ok {
-  background: linear-gradient(180deg, #fff6d8, #ffe8a8);
-  box-shadow: inset 0 0 0 2px #ffc94d;
-  color: #8a5a00;
+  background: linear-gradient(180deg, var(--gold-1), var(--gold-2));
+  box-shadow: inset 0 0 0 1.5px var(--gold-line);
+  color: var(--gold-ink);
 }
 
 .week .d.today {
-  outline: 3px solid var(--c1);
+  outline: 2.5px solid var(--c1);
   outline-offset: 1px;
 }
 
@@ -409,7 +449,7 @@ button {
   font-weight: 900;
   line-height: 1;
   font-variant-numeric: tabular-nums;
-  background: linear-gradient(180deg, var(--c1), #e0562a);
+  background: linear-gradient(170deg, var(--c2), var(--c1));
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -423,8 +463,8 @@ button {
   font-size: 22px;
   font-weight: 900;
   color: #fff;
-  background: linear-gradient(180deg, var(--c2), var(--c1));
-  box-shadow: 0 10px 24px rgba(224, 86, 42, 0.32);
+  background: linear-gradient(160deg, var(--c2), var(--c1));
+  box-shadow: 0 12px 26px var(--c1-a28);
   transition: transform 0.08s;
 }
 
@@ -479,13 +519,14 @@ button {
   background: #fff;
   font-size: 14px;
   font-weight: 700;
-  box-shadow: 0 2px 8px rgba(80, 60, 30, 0.1);
+  box-shadow: var(--shadow-sm), inset 0 0 0 1px var(--line);
   white-space: nowrap;
 }
 
 .chip.on {
-  background: linear-gradient(180deg, var(--c2), var(--c1));
+  background: linear-gradient(160deg, var(--c2), var(--c1));
   color: #fff;
+  box-shadow: 0 5px 14px var(--c1-a28);
 }
 
 /* 古诗 */
@@ -499,14 +540,14 @@ button {
   position: relative;
   padding: 14px 12px;
   border-radius: 18px;
-  background: linear-gradient(180deg, #fffdf5, #fff6e2);
-  box-shadow: var(--shadow);
+  background: linear-gradient(180deg, #fff, var(--paper-warm-2));
+  box-shadow: var(--shadow), inset 0 0 0 1px var(--paper-warm-line);
   text-align: center;
 }
 
 .poem-item.ok {
-  background: linear-gradient(180deg, #f1fff5, #e4fbec);
-  box-shadow: inset 0 0 0 2px #9be3ae;
+  background: linear-gradient(180deg, var(--ok-1), var(--ok-2));
+  box-shadow: inset 0 0 0 1.5px var(--ok-line);
 }
 
 .poem-item .t {
@@ -526,9 +567,9 @@ button {
 }
 
 .scroll-paper {
-  background: linear-gradient(180deg, #fffdf3, #fff8e6);
+  background: linear-gradient(180deg, var(--paper-warm-1), var(--paper-warm-2));
   border-radius: 24px;
-  box-shadow: var(--shadow-lg), inset 0 0 0 1px rgba(200, 160, 90, 0.25);
+  box-shadow: var(--shadow-lg), inset 0 0 0 1px var(--paper-warm-line);
   padding: 20px 14px 22px;
 }
 
@@ -560,7 +601,7 @@ button {
 }
 
 .pline.active {
-  background: rgba(255, 209, 102, 0.35);
+  background: var(--c2-a36);
 }
 
 .pchar {
@@ -572,7 +613,7 @@ button {
 
 .pchar .py {
   font-size: 12.5px;
-  color: #b07a2a;
+  color: var(--py-ink);
   height: 17px;
   letter-spacing: 0;
 }
@@ -585,7 +626,7 @@ button {
 
 .pchar.hide .zi {
   color: transparent;
-  background: rgba(51, 49, 59, 0.1);
+  background: rgba(35, 40, 56, 0.09);
   border-radius: 6px;
 }
 
@@ -610,7 +651,7 @@ button {
   aspect-ratio: 1;
   border-radius: 14px;
   background: #fff;
-  box-shadow: 0 2px 8px rgba(80, 60, 30, 0.1);
+  box-shadow: var(--shadow-sm), inset 0 0 0 1px var(--line);
   display: grid;
   place-items: center;
   font-family: var(--font-hand);
@@ -618,8 +659,8 @@ button {
 }
 
 .hz-cell.ok {
-  background: linear-gradient(180deg, #eafff1, #d9f9e5);
-  box-shadow: inset 0 0 0 2px #7fdca0;
+  background: linear-gradient(180deg, var(--ok-1), var(--ok-2));
+  box-shadow: inset 0 0 0 1.5px var(--ok-line);
 }
 
 .tianzi {
@@ -629,7 +670,7 @@ button {
   position: relative;
   border-radius: 16px;
   background: #fff;
-  box-shadow: inset 0 0 0 3px #ff9b9b;
+  box-shadow: var(--shadow-sm), inset 0 0 0 2.5px var(--tian-line);
 }
 
 .tianzi::before,
@@ -638,7 +679,7 @@ button {
   position: absolute;
   background: repeating-linear-gradient(
     to right,
-    #ffb3b3 0 6px,
+    var(--tian-line) 0 6px,
     transparent 6px 12px
   );
 }
@@ -657,7 +698,7 @@ button {
   width: 1.5px;
   background: repeating-linear-gradient(
     to bottom,
-    #ffb3b3 0 6px,
+    var(--tian-line) 0 6px,
     transparent 6px 12px
   );
 }
@@ -709,7 +750,7 @@ button {
 
 .flash-face.back {
   transform: rotateY(180deg);
-  background: linear-gradient(180deg, #fff, #f4f0ff);
+  background: linear-gradient(180deg, #fff, #eef4ff);
 }
 
 .flash-face .big-en {
@@ -748,13 +789,13 @@ button {
   font-size: 11px;
   text-align: center;
   background: #fff;
-  box-shadow: 0 1px 5px rgba(80, 60, 30, 0.1);
+  box-shadow: var(--shadow-sm), inset 0 0 0 1px var(--line);
   line-height: 1.35;
 }
 
 .mt .cell.ok {
-  background: linear-gradient(180deg, #eafff1, #d5f8e3);
-  box-shadow: inset 0 0 0 2px #7fdca0;
+  background: linear-gradient(180deg, var(--ok-1), var(--ok-2));
+  box-shadow: inset 0 0 0 1.5px var(--ok-line);
 }
 
 .mt .cell b {
@@ -783,7 +824,7 @@ button {
   border-radius: 16px;
   padding: 12px 4px 10px;
   background: #fff;
-  box-shadow: 0 2px 8px rgba(80, 60, 30, 0.1);
+  box-shadow: var(--shadow-sm), inset 0 0 0 1px var(--line);
   text-align: center;
 }
 
@@ -800,8 +841,8 @@ button {
 }
 
 .py-cell.ok {
-  background: linear-gradient(180deg, #eafff1, #d5f8e3);
-  box-shadow: inset 0 0 0 2px #7fdca0;
+  background: linear-gradient(180deg, var(--ok-1), var(--ok-2));
+  box-shadow: inset 0 0 0 1.5px var(--ok-line);
 }
 
 /* 测验 */
@@ -812,19 +853,21 @@ button {
   background: #fff;
   font-size: 20px;
   font-weight: 800;
-  box-shadow: var(--shadow);
+  box-shadow: var(--shadow), inset 0 0 0 1px var(--line);
   margin: 8px 0;
   padding: 10px 14px;
 }
 
 .quiz-opt.right {
-  background: linear-gradient(180deg, #7ee6a6, #40cd80);
+  background: linear-gradient(160deg, #5cd79a, var(--ok));
   color: #fff;
+  box-shadow: 0 6px 16px rgba(47, 191, 113, 0.3);
 }
 
 .quiz-opt.wrong {
-  background: linear-gradient(180deg, #ffb3b3, #ff8080);
+  background: linear-gradient(160deg, #ffa3a9, var(--danger));
   color: #fff;
+  box-shadow: 0 6px 16px rgba(244, 115, 123, 0.28);
 }
 
 /* 勋章 */
@@ -839,7 +882,12 @@ button {
   padding: 14px 8px;
   border-radius: 20px;
   background: #fff;
-  box-shadow: var(--shadow);
+  box-shadow: var(--shadow), inset 0 0 0 1px var(--line);
+}
+
+.badge.on {
+  background: linear-gradient(180deg, #fff, var(--gold-1));
+  box-shadow: var(--shadow), inset 0 0 0 1.5px var(--gold-line);
 }
 
 .badge .ic {
@@ -870,7 +918,7 @@ button {
   position: fixed;
   inset: 0;
   z-index: 60;
-  background: rgba(40, 30, 20, 0.42);
+  background: rgba(24, 29, 44, 0.44);
   display: flex;
   align-items: flex-end;
   justify-content: center;
@@ -995,4 +1043,108 @@ button {
     opacity: 0;
     transform: translateY(8px);
   }
+}
+
+/* ---------------- 云端存档 ---------------- */
+
+/* 保存失败提示条：必须盖在 AppBar 之上，但低于弹层遮罩(60) 之外单独一层 */
+.cloud-banner {
+  position: sticky;
+  top: 0;
+  z-index: 70;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 10px 14px;
+  padding-top: max(10px, env(safe-area-inset-top));
+  background: var(--danger);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(244, 115, 123, 0.35);
+}
+
+.cloud-banner-btn {
+  flex: none;
+  padding: 4px 12px;
+  border: none;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--danger);
+  font-size: 13px;
+  font-weight: 800;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.boot {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 32px 24px;
+  text-align: center;
+}
+
+.boot h1 {
+  margin: 6px 0 4px;
+  font-size: 28px;
+}
+
+.boot .text-input,
+.boot .btn {
+  max-width: 320px;
+}
+
+.boot .muted {
+  max-width: 320px;
+}
+
+.sync-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px 5px 10px;
+  border: none;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.78);
+  box-shadow: inset 0 0 0 1px var(--line);
+  color: var(--ink-2);
+  font-size: 12px;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.sync-badge:active {
+  transform: scale(0.97);
+}
+
+.sync-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex: none;
+}
+
+.text-input {
+  width: 100%;
+  min-height: 46px;
+  margin-top: 10px;
+  padding: 0 14px;
+  border: none;
+  border-radius: 14px;
+  background: var(--page-2);
+  box-shadow: inset 0 0 0 1.5px var(--line);
+  color: var(--ink);
+  font-size: 16px;
+  font-family: inherit;
+}
+
+.text-input:focus {
+  outline: none;
+  box-shadow: inset 0 0 0 2px var(--c1);
 }

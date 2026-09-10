@@ -30,6 +30,9 @@ pnpm-debug.log*
 .env.*
 !.env.example
 
+# 本地开发的存档文件（没配 Redis 时 api 会写到这里）
+.dev-store.json
+
 # 编辑器 / IDE
 .vscode/*
 !.vscode/extensions.json

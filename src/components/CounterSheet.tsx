@@ -5,6 +5,7 @@ import { setDaily, useAppState } from '../store';
 import { today } from '../lib/date';
 import { sfxCount, sfxDing, sfxWin } from '../lib/sound';
 import { confettiBurst, flyStarFromEvent } from '../lib/celebrate';
+import { praise } from '../lib/speech';
 
 export default function CounterSheet({
   kid,
@@ -36,6 +37,7 @@ export default function CounterSheet({
     if (justDone) {
       sfxWin();
       confettiBurst();
+      praise(kid.nick, true);
     }
   }
 
@@ -91,6 +93,7 @@ export default function CounterSheet({
           if (!done) {
             sfxDing();
             confettiBurst(24);
+            praise(kid.nick);
           }
           setDaily(kid.id, task.id, { done: !done });
         }}

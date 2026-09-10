@@ -1,16 +1,29 @@
 # BraveKids · 小勇士打卡乐园
 
 给李一存（7 岁 / 二年级）和李一珩（5 岁 / 幼儿园大班）做的运动 + 学习打卡 App，
-内容完全按照 2026 下半年计划表配置，手机 / iPad 打开即用，数据存在本机浏览器里。
+内容完全按照 2026 下半年计划表配置，手机 / iPad 打开即用。
+**打卡数据只存在云端（Vercel + Redis），本机不留存档**，任何设备输入家庭口令都能接着用。
 
 ## 运行
 
 ```bash
 npm install
-npm run dev      # http://localhost:5180
-npm run build    # 产出 dist/
+npm run dev      # http://localhost:5180，前端 + /api 一起跑，开箱即用
+npm run build    # 类型检查(前端 + api) + 产出 dist/
 npm run preview  # 本地预览打包结果
 ```
+
+`npm run dev` 会用 Vite 中间件直接执行真实的 `api/*.ts`（和线上同一份代码），所以：
+
+- **不用装 vercel CLI，也不用连云端**，开箱就能调试完整链路
+- 没配 Redis 凭据时，存档自动写到项目根目录的 `.dev-store.json`（已 gitignore），
+  想重置数据直接删掉这个文件
+- 没配 `FAMILY_PASSCODE` 时，本地默认口令是 **`dev`**
+- 想连真实 Redis 调试，就把凭据写进 `.env.local`（见下方），会自动切过去；
+  响应头 `X-Store-Kind` 会告诉你当前用的是 `redis` 还是 `local-file`
+
+> 这两个本地兜底都用 `!process.env.VERCEL && NODE_ENV !== 'production'` 双重守卫，
+> 线上不可能命中。
 
 手机/iPad 用同一 Wi-Fi 访问终端里显示的 `Network` 地址即可；
 Safari 里点「分享 → 添加到主屏幕」，就变成一个独立 App 图标（已配置 PWA manifest）。
@@ -43,12 +56,12 @@ Safari 里点「分享 → 添加到主屏幕」，就变成一个独立 App 图
 - 「讲故事」用大白话讲诗意，可以朗读给孩子听
 - 「排排队」游戏：打乱诗句让孩子按顺序点出来
 
-### 🀄 认字小课堂（100 字，给 5 岁的珩宝）
+### 🀄 认字小课堂（100 字，给 5 岁的李一珩）
 - 10 个主题分组（数字宝宝 / 我和家人 / 小动物 …）
 - 点字弹出**田字格大字卡**：拼音、笔画数、组词，可逐个朗读
 - 「听音认字挑战」：听读音 4 选 1
 
-### 🔤 单词闪卡屋（300 词，给 7 岁的存哥）
+### 🔤 单词闪卡屋（300 词，给 7 岁的李一存）
 - 15 个主题单元 × 20 词，每词含 emoji 图示 + 国际音标 + 英文发音
 - 3D 翻转闪卡，翻面看中文；也有列表模式批量勾选
 - 两种测验：看图选词 / 听音选意思
@@ -57,19 +70,102 @@ Safari 里点「分享 → 添加到主屏幕」，就变成一个独立 App 图
 - 口诀按列练习 + 完整九九表点读，闯关小测 10 题
 - 拼音分声母 23 / 韵母 24 / 整体认读 16，点卡片读例词
 
+## 云端同步（Vercel + Redis）
+
+### 部署步骤
+
+> Vercel KV 已于 2024-12 下线并迁移到 Upstash，现在 Redis 统一走 Marketplace 开通。
+> **必须选支持 REST API 的 Upstash Redis**；只给 `redis://` TCP 连接串的服务商（如 Redis Cloud）用不了，
+> 因为 Serverless / Edge 环境不适合 TCP 长连接。
+
+1. 把仓库导入 Vercel（会自动识别成 Vite，无需额外配置）。
+2. 项目 → **Storage**（或 Dashboard → **Marketplace**，按 Storage 分类搜 `redis`）
+   → 选 **Upstash for Redis** → 选区域和 Free 套餐 → 创建。
+3. 在该数据库的 **Settings / Connect Project** 里把它 **连接到本项目**，
+   Vercel 会自动把凭据注入环境变量。
+4. 到 **Settings → Environment Variables** 核对一下注入的变量名，应该是下面两组之一：
+
+   | 接入方式 | 注入的变量名 |
+   | --- | --- |
+   | Vercel Marketplace 原生集成 | `KV_REST_API_URL` + `KV_REST_API_TOKEN` |
+   | Upstash 官方集成 / 手动填 | `UPSTASH_REDIS_REST_URL` + `UPSTASH_REDIS_REST_TOKEN` |
+
+   两组代码都兼容，不用改任何东西。若变量名和上面都不一样，
+   手动加一组 `KV_REST_API_URL` / `KV_REST_API_TOKEN` 即可（值从 Upstash 面板复制 REST URL / Token）。
+
+5. 同一个页面再加一条口令：
+
+   | Key | Value | 环境 |
+   | --- | --- | --- |
+   | `FAMILY_PASSCODE` | 自己定的家庭口令，建议 16 位以上随机串 | Production / Preview / Development 全选 |
+
+6. **重新 Deploy**（环境变量只在部署时注入，不重新部署不生效）。
+7. 打开网页 → 选人页点「未连云端」徽章 → 输入口令 → 显示「已同步」。
+   其他设备输入同一个口令，进度就合到一起了。
+
+### 本地调试
+
+直接 `npm run dev` 就行，默认用文件存储 + 口令 `dev`，不依赖云端。
+
+想连线上那份真实 Redis 调试的话：
+
+```bash
+npx vercel link                  # 首次：把本地目录关联到 Vercel 项目
+npx vercel env pull .env.local   # 拉取线上环境变量（.env.local 已被 gitignore）
+npm run dev                      # 自动读取 .env.local，切到真实 Redis
+```
+
+也可以手抄 `.env.example` 自己填 `.env.local`。
+⚠️ 连的是同一个库，本地调试会改到孩子的真实打卡数据，注意别乱点。
+
+### 排查
+
+- 徽章一直显示「仅存本机」→ 接口返回了 503，去 Vercel → **Logs** 看 `/api/state` 的日志，
+  会打印当前检测到的 `KV_*` / `UPSTASH_*` / `REDIS_*` 变量名，对照第 4 步。
+- 徽章显示「口令错误」→ `FAMILY_PASSCODE` 没配、配错，或改完没重新部署。
+
+### 设计要点
+
+- **纯云端**：打开 App 先 `GET /api/state` 拉存档，拉到之前只显示加载页；
+  本地 `localStorage` 只存一个家庭口令，不存任何打卡数据。
+- **按孩子分字段存**：Redis 里是一个 Hash `bravekids:v1:kids`，`cun` / `heng` 各一个字段。
+  写入是 `PUT { kid, state }` → `HSET` 覆盖单个字段，所以哥哥在 iPad、弟弟在手机同时打卡也不会互相覆盖，
+  服务端不需要任何版本号 / 合并逻辑。
+- **写入策略**：改动先进内存（界面立刻响应），防抖 800ms 后回写云端；
+  切后台 / 关页面时用 `keepalive` 立即刷出。
+- **写失败不静默**：失败会顶部弹红色警示条 + 每 3 秒自动重试，还有未保存改动时关页面会被浏览器拦一下。
+- **访问控制**：口令只存在环境变量里，服务端用 `timingSafeEqual` 比对并对失败次数限流（10 分钟 20 次）。
+- **注意**：没网时打不开（这是「数据只放云端」的代价）；已经打开的情况下断网，
+  改动会留在内存里持续重试，但此时刷新页面会丢。
+
 ## 目录结构
 
 ```
+api/
+├── state.ts         # GET(读全部) / PUT(写单个孩子) 存档接口
+└── _lib/
+    ├── store.ts     # Redis Hash 读写 + 环境变量兼容
+    └── auth.ts      # 家庭口令校验 + 失败限流
 src/
 ├── data/        # 全部学习内容：poems / hanzi / words / pinyin / math / kids(计划配置)
-├── lib/         # 日期、音效(Web Audio)、朗读(TTS)、撒花动画、进度与勋章、学习联动
-├── components/  # 通用 UI、计数器弹层、计时器弹层、通用测验
+├── lib/
+│   ├── cloud.ts # 云端存档：拉取、防抖写入、失败重试、生命周期
+│   └── ...      # 日期、音效(Web Audio)、朗读(TTS)、撒花动画、进度与勋章
+├── components/
+│   ├── Boot.tsx        # 加载 / 输入口令 / 出错重试（存档就绪前的过渡页）
+│   ├── CloudBanner.tsx # 保存失败的全局警示条
+│   ├── SyncBadge.tsx   # 云端状态徽章
+│   └── ...             # 通用 UI、计数器弹层、计时器弹层、通用测验
 ├── pages/       # 选人 / 今日打卡 / 古诗 / 汉字 / 单词 / 乘法 / 拼音 / 勋章墙
 └── styles/      # 全局样式（含田字格、闪卡、诗卷等）
 ```
 
 ## 家长须知
 
-- 数据保存在浏览器 `localStorage`（键名 `kids-center-v1`），不上传任何服务器；换设备不同步。
-- 右上角 ⚙️ 里有每个孩子的统计和「清空记录」。
+- 打卡数据只在云端 Redis（Hash `bravekids:v1:kids`，字段 `cun` / `heng`）。
+  本机 `localStorage` 只有一个 `bravekids-passcode`，清浏览器数据不会丢进度，但要重新输口令。
+- 选人页的小徽章能看到「已存云端 / 保存中 / 未保存」，也能在那里退出（清除口令）。
+- 顶部出现红色「还没存到云端」时别急着关页面，它会自动重试，也可以点「重试」。
+- 右上角 ⚙️ 里有每个孩子的统计、云端状态和「清空记录」。
+- 口令是访问全家存档的唯一凭证，不要发到群里；要换口令直接改 Vercel 环境变量并重新部署即可。
 - 计划要调整（比如跳绳加到 1000 个）只改 `src/data/kids.ts` 即可。
