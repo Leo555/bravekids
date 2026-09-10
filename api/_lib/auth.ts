@@ -60,7 +60,8 @@ const memoryFails = new Map<string, { count: number; expireAt: number }>();
 
 async function readFails(key: string): Promise<number> {
   if (isRedisConfigured()) {
-    return Number((await getRedis().get<number | string>(key)) ?? 0);
+    const redis = await getRedis();
+    return Number((await redis.get<number | string>(key)) ?? 0);
   }
   const rec = memoryFails.get(key);
   if (!rec || rec.expireAt < Date.now()) {
@@ -72,7 +73,7 @@ async function readFails(key: string): Promise<number> {
 
 async function bumpFails(key: string): Promise<void> {
   if (isRedisConfigured()) {
-    const redis = getRedis();
+    const redis = await getRedis();
     const n = await redis.incr(key);
     if (n === 1) await redis.expire(key, FAIL_WINDOW_SECONDS);
     return;
@@ -88,7 +89,8 @@ async function bumpFails(key: string): Promise<void> {
 
 async function clearFails(key: string): Promise<void> {
   if (isRedisConfigured()) {
-    await getRedis().del(key);
+    const redis = await getRedis();
+    await redis.del(key);
     return;
   }
   memoryFails.delete(key);

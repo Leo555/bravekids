@@ -13,7 +13,7 @@
  */
 import { readFile, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
-import { Redis } from '@upstash/redis';
+import type { Redis } from '@upstash/redis';
 
 export const HASH_KEY = 'bravekids:v1:kids';
 
@@ -79,11 +79,19 @@ export function describeRedisEnv(): string {
   return names.length ? names.join(', ') : '(没有任何 KV_/UPSTASH_/REDIS_ 开头的变量)';
 }
 
-export function getRedis(): Redis {
+/**
+ * 动态 import @upstash/redis：
+ * 放在模块顶层 import 的话，一旦这个包在运行时加载失败，
+ * 函数会在任何代码执行前就崩掉，Vercel 只给一个没有线索的
+ * FUNCTION_INVOCATION_FAILED。改成动态导入后，失败会变成
+ * 可以被 handler 捕获、能写进日志的普通异常。
+ */
+export async function getRedis(): Promise<Redis> {
   if (client) return client;
   const cred = readRestCredentials();
   if (!cred) throw new Error('REDIS_NOT_CONFIGURED');
-  client = new Redis({ url: cred.url, token: cred.token });
+  const { Redis: RedisCtor } = await import('@upstash/redis');
+  client = new RedisCtor({ url: cred.url, token: cred.token });
   return client;
 }
 
@@ -124,7 +132,8 @@ export async function readAllKids(): Promise<Record<string, unknown>> {
     if (!isLocalDev()) throw new Error('REDIS_NOT_CONFIGURED');
     return readDevFile();
   }
-  const all = await getRedis().hgetall<Record<string, unknown>>(HASH_KEY);
+  const redis = await getRedis();
+  const all = await redis.hgetall<Record<string, unknown>>(HASH_KEY);
   return all ?? {};
 }
 
@@ -137,5 +146,6 @@ export async function writeKid(kid: string, state: unknown): Promise<void> {
     await writeDevFile(data);
     return;
   }
-  await getRedis().hset(HASH_KEY, { [kid]: JSON.stringify(state) });
+  const redis = await getRedis();
+  await redis.hset(HASH_KEY, { [kid]: JSON.stringify(state) });
 }
