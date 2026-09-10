@@ -57,7 +57,7 @@ export function Ring({
           cy={size / 2}
           r={r}
           fill="none"
-          stroke="rgba(35,40,56,0.08)"
+          stroke="rgba(31,35,48,0.07)"
           strokeWidth={stroke}
         />
         <circle
@@ -172,13 +172,44 @@ function alpha(hex: string, a: number): string {
   return `rgba(${r}, ${g}, ${b}, ${a})`;
 }
 
+/**
+ * 把 hex 与 #fff8f1（带轻微暖意的纸白色）按 t (0..1) 混合。
+ * 暖色主题能避免粉化（直接与 #fff 混合会让 #ff7a59 变成肤色），
+ * 冷色主题仍然清爽。
+ */
+function tint(hex: string): string {
+  const h = hex.replace('#', '');
+  const full = h.length === 3 ? h.split('').map((c) => c + c).join('') : h;
+  const n = parseInt(full, 16);
+  const r = (n >> 16) & 255;
+  const g = (n >> 8) & 255;
+  const b = n & 255;
+  const f = (v: number, w: number) => Math.round(v + (w - v) * 0.9);
+  const toHex = (v: number) => v.toString(16).padStart(2, '0');
+  return `#${toHex(f(r, 0xff))}${toHex(f(g, 0xf8))}${toHex(f(b, 0xf1))}`;
+}
+function tint2(hex: string): string {
+  const h = hex.replace('#', '');
+  const full = h.length === 3 ? h.split('').map((c) => c + c).join('') : h;
+  const n = parseInt(full, 16);
+  const r = (n >> 16) & 255;
+  const g = (n >> 8) & 255;
+  const b = n & 255;
+  const f = (v: number, w: number) => Math.round(v + (w - v) * 0.78);
+  const toHex = (v: number) => v.toString(16).padStart(2, '0');
+  return `#${toHex(f(r, 0xff))}${toHex(f(g, 0xf8))}${toHex(f(b, 0xf1))}`;
+}
+
 export function themeStyle(color: string, color2: string): CSSProperties {
   return {
     ['--c1' as string]: color,
     ['--c2' as string]: color2,
-    ['--c1-a12' as string]: alpha(color, 0.12),
-    ['--c1-a28' as string]: alpha(color, 0.28),
-    ['--c2-a20' as string]: alpha(color2, 0.2),
-    ['--c2-a36' as string]: alpha(color2, 0.36),
+    '--c1-a14': alpha(color, 0.14),
+    ['--c1-a22' as string]: alpha(color, 0.22),
+    ['--c1-a36' as string]: alpha(color, 0.36),
+    ['--c2-a22' as string]: alpha(color2, 0.22),
+    ['--c2-a38' as string]: alpha(color2, 0.38),
+    '--c-tint': tint(color),
+    '--c-tint-2': tint2(color),
   } as CSSProperties;
 }

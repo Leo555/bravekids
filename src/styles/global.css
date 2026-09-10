@@ -1,43 +1,56 @@
 :root {
   /* 主题色（跟随孩子，见 themeStyle） */
-  --c1: #f97452;
-  --c2: #ffc15e;
-  --c1-a12: rgba(249, 116, 82, 0.12);
-  --c1-a28: rgba(249, 116, 82, 0.28);
-  --c2-a20: rgba(255, 193, 94, 0.2);
-  --c2-a36: rgba(255, 193, 94, 0.36);
+  --c1: #ff7a59;
+  --c2: #ffb547;
+  --c1-a14: rgba(255, 122, 89, 0.14);
+  --c1-a22: rgba(255, 122, 89, 0.22);
+  --c1-a36: rgba(255, 122, 89, 0.36);
+  --c2-a22: rgba(255, 181, 71, 0.22);
+  --c2-a38: rgba(255, 181, 71, 0.38);
 
   /* 中性色：干净的冷白底 + 深靛文字 */
-  --ink: #232838;
-  --ink-2: #767f91;
+  --ink: #1f2330;
+  --ink-3: #adb5c5;
+  --ink-2: #7c8699;
   --paper: #ffffff;
-  --page-1: #fbfcfe;
-  --page-2: #f2f5fa;
-  --line: rgba(35, 40, 56, 0.08);
-  --shadow-sm: 0 2px 8px rgba(31, 41, 74, 0.07);
-  --shadow: 0 6px 20px rgba(31, 41, 74, 0.08);
-  --shadow-lg: 0 14px 36px rgba(31, 41, 74, 0.13);
+  --page-1: #fafaf7;
+  --c-tint: #fff5ee;
+  --c-tint-2: #ffe9dc;
+  --page-2: #f3f1ec;
+  --line: rgba(31, 35, 48, 0.06);
+  --line-strong: rgba(31, 35, 48, 0.1);
+  --shadow-sm: 0 1px 2px rgba(31, 35, 48, 0.04), 0 2px 8px rgba(31, 35, 48, 0.05);
+  --shadow: 0 2px 4px rgba(31, 35, 48, 0.04), 0 8px 24px rgba(31, 35, 48, 0.07);
+  --shadow-lg: 0 4px 12px rgba(31, 35, 48, 0.05), 0 18px 40px rgba(31, 35, 48, 0.11);
+  --shadow-glow: 0 8px 28px var(--c1-a22);
 
   /* 状态色 */
-  --ok: #2fbf71;
-  --ok-1: #f3fcf7;
-  --ok-2: #e4f8ed;
-  --ok-line: #a6e6c2;
-  --gold: #ffc94d;
-  --gold-1: #fff9e9;
-  --gold-2: #fff0cb;
-  --gold-line: #ffd98a;
+  --ok: #18b66a;
+  --ok-ink: #0f7c4a;
+  --ok-1: #ecfaf2;
+  --ok-2: #d4f3e1;
+  --ok-line: #8edcb1;
+  --gold: #ffb820;
+  --gold-1: #fffaeb;
+  --gold-2: #ffeec2;
+  --gold-line: #f5cf6e;
   --gold-ink: #8a6008;
-  --danger: #f4737b;
+  --danger: #ff5d6c;
+  --danger-1: #fff1f2;
+  --danger-line: #ffb1b8;
+  --info: #4f8ef7;
+  --info-1: #eef4ff;
+  --info-line: #b9cfff;
 
   /* 古诗 / 汉字用的纸张暖色 */
-  --paper-warm-1: #fffdf7;
-  --paper-warm-2: #fff8ec;
-  --paper-warm-line: rgba(188, 156, 104, 0.22);
+  --paper-warm-1: #fffdf6;
+  --paper-warm-2: #fdf4e2;
+  --paper-warm-line: rgba(170, 130, 60, 0.18);
   --py-ink: #a8762f;
-  --tian-line: #f6b9b9;
+  --tian-line: #f3b6b6;
 
   --radius: 22px;
+  --radius-lg: 28px;
   --font-hand: 'Kaiti SC', 'STKaiti', KaiTi, 'Baoli SC', 'Songti SC', serif;
   --safe-b: env(safe-area-inset-bottom, 0px);
   color-scheme: light;
@@ -80,10 +93,10 @@ button {
 
 .app {
   min-height: 100dvh;
-  /* 顶部一抹主题色光晕，其余保持干净的浅冷白，避免整屏染色 */
-  background: radial-gradient(760px 420px at 50% -12%, var(--c2-a36) 0%, transparent 72%),
-    radial-gradient(520px 320px at 88% 6%, var(--c1-a12) 0%, transparent 70%),
-    radial-gradient(620px 340px at 50% 106%, var(--c1-a12) 0%, transparent 72%),
+  /* 暖白底 + 顶部一抹主题光晕，营造温馨而非冷感 */
+  background:
+    radial-gradient(640px 360px at 50% -14%, var(--c1-a14) 0%, transparent 70%),
+    radial-gradient(560px 320px at 88% 8%, var(--c2-a22) 0%, transparent 72%),
     linear-gradient(180deg, var(--page-1) 0%, var(--page-2) 100%);
   background-attachment: fixed;
   padding-bottom: calc(28px + var(--safe-b));
@@ -104,7 +117,7 @@ button {
   gap: 10px;
   padding: 12px 16px;
   padding-top: calc(12px + env(safe-area-inset-top, 0px));
-  background: rgba(255, 255, 255, 0.82);
+  background: rgba(255, 255, 255, 0.88);
   backdrop-filter: saturate(160%) blur(12px);
   -webkit-backdrop-filter: saturate(160%) blur(12px);
   border-bottom: 1px solid var(--line);
@@ -126,7 +139,7 @@ button {
   place-items: center;
   font-size: 20px;
   background: #fff;
-  box-shadow: var(--shadow-sm), inset 0 0 0 1px var(--line);
+  box-shadow: var(--shadow-sm), inset 0 0 0 1px var(--line-strong);
   transition: transform 0.12s;
 }
 
@@ -143,7 +156,7 @@ button {
   background: #fff;
   font-weight: 800;
   font-size: 14px;
-  box-shadow: var(--shadow-sm), inset 0 0 0 1px var(--line);
+  box-shadow: var(--shadow-sm), inset 0 0 0 1px var(--line-strong);
 }
 
 /* ---------------- 卡片 ---------------- */
@@ -162,22 +175,38 @@ button {
 
 /* 首页顶部总览卡：带一层主题浅色，视觉重心更突出 */
 .card.hero {
-  background: linear-gradient(150deg, #fff 34%, var(--c2-a20) 100%);
-  box-shadow: var(--shadow-lg), inset 0 0 0 1px var(--line);
+  position: relative;
+  overflow: hidden;
+  background: var(--c-tint);
+  border: 1px solid var(--c-tint-2);
+  box-shadow: var(--shadow);
+}
+.card.hero::after {
+  content: "";
+  position: absolute;
+  right: -40px;
+  top: -40px;
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--c1-a14) 0%, transparent 70%);
+  pointer-events: none;
 }
 
 .section-title {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin: 22px 2px 8px;
+  margin: 24px 4px 10px;
   font-size: 17px;
   font-weight: 800;
+  color: var(--ink);
+  letter-spacing: 0.3px;
 }
 
 .section-title small {
   margin-left: auto;
-  font-size: 13px;
+  font-size: 12.5px;
   font-weight: 600;
   color: var(--ink-2);
 }
@@ -200,7 +229,7 @@ button {
   border-radius: 16px;
   font-weight: 800;
   background: #fff;
-  box-shadow: var(--shadow-sm), inset 0 0 0 1px var(--line);
+  box-shadow: var(--shadow-sm), inset 0 0 0 1px var(--line-strong);
   transition: transform 0.12s, box-shadow 0.12s;
 }
 
@@ -213,11 +242,11 @@ button {
   background: linear-gradient(160deg, var(--c2), var(--c1));
   color: #fff;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
-  box-shadow: 0 6px 16px var(--c1-a28);
+  box-shadow: var(--shadow-glow);
 }
 
 .btn.ghost {
-  background: rgba(255, 255, 255, 0.72);
+  background: rgba(255, 255, 255, 0.78);
   box-shadow: inset 0 0 0 1.5px var(--line);
 }
 
@@ -306,7 +335,7 @@ button {
 .kid-card .blob {
   position: absolute;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.18);
 }
 
 /* ---------------- 任务 ---------------- */
@@ -340,8 +369,8 @@ button {
   place-items: center;
   font-size: 28px;
   border-radius: 16px;
-  background: linear-gradient(180deg, #fff, var(--c2-a20));
-  box-shadow: inset 0 0 0 1px var(--line);
+  background: var(--c-tint);
+  box-shadow: inset 0 0 0 1px var(--c-tint-2);
 }
 
 .task .body {
@@ -373,9 +402,9 @@ button {
 }
 
 .check.on {
-  background: linear-gradient(160deg, #5cd79a, var(--ok));
+  background: linear-gradient(160deg, #34d28a, var(--ok));
   color: #fff;
-  box-shadow: 0 5px 14px rgba(47, 191, 113, 0.35);
+  box-shadow: 0 5px 14px rgba(24, 182, 106, 0.35);
 }
 
 .check:active {
@@ -387,7 +416,7 @@ button {
   position: relative;
   height: 12px;
   border-radius: 999px;
-  background: rgba(35, 40, 56, 0.07);
+  background: rgba(31, 35, 48, 0.07);
   overflow: hidden;
 }
 
@@ -445,10 +474,11 @@ button {
 }
 
 .counter .num {
-  font-size: 64px;
+  font-size: 68px;
   font-weight: 900;
   line-height: 1;
   font-variant-numeric: tabular-nums;
+  letter-spacing: -1px;
   background: linear-gradient(170deg, var(--c2), var(--c1));
   -webkit-background-clip: text;
   background-clip: text;
@@ -464,7 +494,7 @@ button {
   font-weight: 900;
   color: #fff;
   background: linear-gradient(160deg, var(--c2), var(--c1));
-  box-shadow: 0 12px 26px var(--c1-a28);
+  box-shadow: var(--shadow-glow), 0 2px 6px rgba(0, 0, 0, 0.06);
   transition: transform 0.08s;
 }
 
@@ -519,14 +549,14 @@ button {
   background: #fff;
   font-size: 14px;
   font-weight: 700;
-  box-shadow: var(--shadow-sm), inset 0 0 0 1px var(--line);
+  box-shadow: var(--shadow-sm), inset 0 0 0 1px var(--line-strong);
   white-space: nowrap;
 }
 
 .chip.on {
   background: linear-gradient(160deg, var(--c2), var(--c1));
   color: #fff;
-  box-shadow: 0 5px 14px var(--c1-a28);
+  box-shadow: var(--shadow-glow);
 }
 
 /* 古诗 */
@@ -547,7 +577,7 @@ button {
 
 .poem-item.ok {
   background: linear-gradient(180deg, var(--ok-1), var(--ok-2));
-  box-shadow: inset 0 0 0 1.5px var(--ok-line);
+  box-shadow: inset 0 0 0 1.5px var(--ok-line), 0 0 0 4px rgba(24, 182, 106, 0.05);
 }
 
 .poem-item .t {
@@ -601,7 +631,7 @@ button {
 }
 
 .pline.active {
-  background: var(--c2-a36);
+  background: var(--c2-a38);
 }
 
 .pchar {
@@ -626,7 +656,7 @@ button {
 
 .pchar.hide .zi {
   color: transparent;
-  background: rgba(35, 40, 56, 0.09);
+  background: rgba(31, 35, 48, 0.07);
   border-radius: 6px;
 }
 
@@ -651,7 +681,7 @@ button {
   aspect-ratio: 1;
   border-radius: 14px;
   background: #fff;
-  box-shadow: var(--shadow-sm), inset 0 0 0 1px var(--line);
+  box-shadow: var(--shadow-sm), inset 0 0 0 1px var(--line-strong);
   display: grid;
   place-items: center;
   font-family: var(--font-hand);
@@ -789,7 +819,7 @@ button {
   font-size: 11px;
   text-align: center;
   background: #fff;
-  box-shadow: var(--shadow-sm), inset 0 0 0 1px var(--line);
+  box-shadow: var(--shadow-sm), inset 0 0 0 1px var(--line-strong);
   line-height: 1.35;
 }
 
@@ -824,7 +854,7 @@ button {
   border-radius: 16px;
   padding: 12px 4px 10px;
   background: #fff;
-  box-shadow: var(--shadow-sm), inset 0 0 0 1px var(--line);
+  box-shadow: var(--shadow-sm), inset 0 0 0 1px var(--line-strong);
   text-align: center;
 }
 
@@ -859,15 +889,15 @@ button {
 }
 
 .quiz-opt.right {
-  background: linear-gradient(160deg, #5cd79a, var(--ok));
+  background: linear-gradient(160deg, #34d28a, var(--ok));
   color: #fff;
-  box-shadow: 0 6px 16px rgba(47, 191, 113, 0.3);
+  box-shadow: 0 6px 16px rgba(24, 182, 106, 0.3);
 }
 
 .quiz-opt.wrong {
-  background: linear-gradient(160deg, #ffa3a9, var(--danger));
+  background: linear-gradient(160deg, #ff8a96, var(--danger));
   color: #fff;
-  box-shadow: 0 6px 16px rgba(244, 115, 123, 0.28);
+  box-shadow: 0 6px 16px rgba(255, 93, 108, 0.28);
 }
 
 /* 勋章 */
@@ -886,8 +916,8 @@ button {
 }
 
 .badge.on {
-  background: linear-gradient(180deg, #fff, var(--gold-1));
-  box-shadow: var(--shadow), inset 0 0 0 1.5px var(--gold-line);
+  background: linear-gradient(180deg, #fffefa, var(--gold-1) 70%, var(--gold-2));
+  box-shadow: var(--shadow), inset 0 0 0 1.5px var(--gold-line), 0 0 0 4px rgba(255, 184, 32, 0.06);
 }
 
 .badge .ic {
@@ -1063,7 +1093,7 @@ button {
   font-size: 13px;
   font-weight: 700;
   text-align: center;
-  box-shadow: 0 4px 12px rgba(244, 115, 123, 0.35);
+  box-shadow: 0 4px 12px rgba(255, 93, 108, 0.3);
 }
 
 .cloud-banner-btn {
