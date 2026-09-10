@@ -1,19 +1,10 @@
 import type { Kid } from '../types';
-import { POEMS } from './poems';
 
-/** 弟弟背的 10 首（启蒙 stage 1 的前 10 首） */
-const HENG_POEMS = POEMS.filter((p) => p.stage === 1)
-  .slice(0, 10)
-  .map((p) => p.id);
-
-/** 哥哥背的 30 首（启蒙里剩下的 + 进阶，共 30 首） */
-const CUN_POEMS = [
-  ...POEMS.filter((p) => p.stage === 1).slice(10),
-  ...POEMS.filter((p) => p.stage === 2),
-]
-  .slice(0, 30)
-  .map((p) => p.id);
-
+/**
+ * 注意：这里刻意不 import ./poems。
+ * kids.ts 会进首屏 bundle，而 poems.ts 有 33KB，
+ * 古诗清单改用 poemPlan 规则描述，真正的 id 在古诗页解析（见 lib/poemPlan.ts）。
+ */
 export const KIDS: Kid[] = [
   {
     id: 'cun',
@@ -26,7 +17,7 @@ export const KIDS: Kid[] = [
     color2: '#ffc15e',
     slogan: '一天不断，越跳越强！',
     features: ['words', 'math', 'poems'],
-    poemIds: CUN_POEMS,
+    poemPlan: { skipStage1: 10, take: 30 },
     hanziCount: 0,
     wordCount: 300,
     daily: [
@@ -115,7 +106,7 @@ export const KIDS: Kid[] = [
     color2: '#7ee0d5',
     slogan: '我要学会连跳啦！',
     features: ['hanzi', 'pinyin', 'poems'],
-    poemIds: HENG_POEMS,
+    poemPlan: { skipStage1: 0, take: 10 },
     hanziCount: 100,
     wordCount: 0,
     daily: [

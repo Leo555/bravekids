@@ -252,14 +252,18 @@ function Detail({
 export default function Poems({ kid }: { kid: Kid }) {
   const app = useAppState();
   const st = app.kids[kid.id];
-  const list = useMemo(
-    () => kid.poemIds.map((id) => POEMS.find((p) => p.id === id)).filter(Boolean) as Poem[],
-    [kid.poemIds],
-  );
-  const extra = useMemo(
-    () => POEMS.filter((p) => !kid.poemIds.includes(p.id)),
-    [kid.poemIds],
-  );
+  // 按 poemPlan 解析出这个孩子要背的诗：启蒙档跳过前 skipStage1 首，
+  // 接上进阶档，一共取 take 首。等价于以前写死在 kids.ts 里的那份清单。
+  const list = useMemo(() => {
+    const stage1 = POEMS.filter((p) => p.stage === 1);
+    const stage2 = POEMS.filter((p) => p.stage === 2);
+    return [...stage1.slice(kid.poemPlan.skipStage1), ...stage2].slice(0, kid.poemPlan.take);
+  }, [kid.poemPlan]);
+
+  const extra = useMemo(() => {
+    const chosen = new Set(list.map((p) => p.id));
+    return POEMS.filter((p) => !chosen.has(p.id));
+  }, [list]);
   const [openId, setOpenId] = useState<string | null>(null);
   const [showExtra, setShowExtra] = useState(false);
 

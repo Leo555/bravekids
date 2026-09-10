@@ -1090,6 +1090,17 @@ button {
   text-align: center;
 }
 
+/* 懒加载页面切换时的占位，尺寸与 .boot 一致避免跳动 */
+.page-loading {
+  min-height: 60dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  text-align: center;
+}
+
 .boot h1 {
   margin: 6px 0 4px;
   font-size: 28px;

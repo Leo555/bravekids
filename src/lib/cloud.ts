@@ -153,6 +153,18 @@ function handleFailure(res: Response): boolean {
 /* ------------------------- 读 ------------------------- */
 
 /**
+ * 首屏那次 GET 由 index.html 里的内联脚本提前发出（和主 JS 下载并行），
+ * 这里优先取它的结果，取不到再自己发一次。只用一次，之后都走正常请求。
+ */
+function takePrefetched(): Promise<Response> | null {
+  const w = window as unknown as { __bkState?: Promise<Response> };
+  const p = w.__bkState;
+  if (!p) return null;
+  delete w.__bkState;
+  return p;
+}
+
+/**
  * 拉取云端存档。返回 null 表示没拉到（状态里有原因）。
  * 没填口令时也会发一次请求，靠服务端返回的 503 / 401
  * 区分「后端没配好」和「需要输入口令」。
@@ -162,7 +174,9 @@ export async function loadKids(): Promise<Partial<Record<KidId, unknown>> | null
 
   let res: Response;
   try {
-    res = await request('GET');
+    // 预取的响应体只能读一次，克隆一份防止 React StrictMode 下重复消费
+    const prefetched = takePrefetched();
+    res = prefetched ? (await prefetched).clone() : await request('GET');
   } catch {
     update({
       status: getPasscode() ? 'error' : 'need-passcode',
