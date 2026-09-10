@@ -12,7 +12,7 @@
  */
 import { createHash, timingSafeEqual } from 'node:crypto';
 import type { VercelRequest } from '@vercel/node';
-import { getRedis, isLocalDev, isRedisConfigured } from './store';
+import { getRedis, isLocalDev, isRedisConfigured } from './store.js';
 
 const MAX_FAILS = 20;
 /** 全局失败上限：防止用代理池换 IP 绕过单 IP 限流 */

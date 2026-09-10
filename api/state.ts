@@ -5,8 +5,16 @@
  * 请求头必须带家庭口令：Authorization: Bearer <FAMILY_PASSCODE>
  */
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { authorize } from './_lib/auth';
-import { describeRedisEnv, isStoreReady, readAllKids, storeKind, writeKid } from './_lib/store';
+// package.json 是 "type": "module"，Node ESM 下相对导入必须带扩展名，
+// 少了 .js 会在函数加载阶段就 ERR_MODULE_NOT_FOUND（表现为 FUNCTION_INVOCATION_FAILED）
+import { authorize } from './_lib/auth.js';
+import {
+  describeRedisEnv,
+  isStoreReady,
+  readAllKids,
+  storeKind,
+  writeKid,
+} from './_lib/store.js';
 
 /** 单个孩子的存档体积上限，正常只有几十 KB */
 const MAX_BODY_BYTES = 512 * 1024;
