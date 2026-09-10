@@ -25,42 +25,48 @@ export function isLocalDev(): boolean {
 let client: Redis | null = null;
 
 /**
- * Redis 凭据必须是 REST 协议（Upstash 系）。Vercel 上不同接入方式注入的
- * 变量名不一样，这里按优先级依次尝试，最后再做一次模糊查找兜底：
- * - Vercel Marketplace 原生集成（含由 Vercel KV 迁移而来的项目）：KV_REST_API_*
- * - Upstash 官方集成 / 控制台自己复制：UPSTASH_REDIS_REST_*
+ * Redis 凭据必须是 REST 协议（Upstash 系）。Vercel 上注入的变量名有好几种情况：
+ * - Marketplace 原生集成：KV_REST_API_URL / KV_REST_API_TOKEN
+ * - Upstash 官方集成：UPSTASH_REDIS_REST_URL / UPSTASH_REDIS_REST_TOKEN
+ * - 同一个库连了多个项目时，Vercel 会加项目前缀，
+ *   例如 bravekids_KV_REST_API_URL / bravekids_KV_REST_API_TOKEN
  *
- * 注意：如果选的是只提供 redis:// TCP 连接串的服务商（如 Redis Cloud），
- * 这里拿不到凭据 —— 请选支持 REST API 的 Upstash Redis。
+ * 所以这里先按标准名精确取，取不到再按「后缀 + 同前缀配对」找，
+ * 保证 URL 和 TOKEN 来自同一个数据库，也不会误选 *_READ_ONLY_TOKEN。
+ *
+ * 注意：只提供 redis:// TCP 连接串的服务商（如 Redis Cloud）不适用，
+ * Serverless 环境请选支持 REST API 的 Upstash Redis。
  */
-const URL_ENV_KEYS = [
-  'KV_REST_API_URL',
-  'UPSTASH_REDIS_REST_URL',
-  'REDIS_REST_API_URL',
+const CREDENTIAL_SUFFIXES = [
+  { url: 'KV_REST_API_URL', token: 'KV_REST_API_TOKEN' },
+  { url: 'UPSTASH_REDIS_REST_URL', token: 'UPSTASH_REDIS_REST_TOKEN' },
+  { url: 'REDIS_REST_API_URL', token: 'REDIS_REST_API_TOKEN' },
 ] as const;
-
-const TOKEN_ENV_KEYS = [
-  'KV_REST_API_TOKEN',
-  'UPSTASH_REDIS_REST_TOKEN',
-  'REDIS_REST_API_TOKEN',
-] as const;
-
-function pickEnv(keys: readonly string[], fuzzy: RegExp): string | undefined {
-  for (const k of keys) {
-    const v = process.env[k];
-    if (v) return v;
-  }
-  // 兜底：服务商换了命名时，按后缀模糊匹配一次
-  const hit = Object.keys(process.env).find((k) => fuzzy.test(k) && process.env[k]);
-  return hit ? process.env[hit] : undefined;
-}
 
 function readRestCredentials(): { url: string; token: string } | null {
-  const url = pickEnv(URL_ENV_KEYS, /REST_(API_)?URL$/);
-  const token = pickEnv(TOKEN_ENV_KEYS, /REST_(API_)?TOKEN$/);
-  if (!url || !token) return null;
-  if (!/^https:\/\//.test(url)) return null; // 只接受 REST(HTTPS) 端点
-  return { url, token };
+  const keys = Object.keys(process.env);
+
+  for (const pair of CREDENTIAL_SUFFIXES) {
+    // 先试没有前缀的标准命名，再试带前缀的（bravekids_KV_REST_API_URL 之类）
+    const candidates = [pair.url, ...keys.filter((k) => k !== pair.url && k.endsWith(pair.url))];
+
+    for (const urlKey of candidates) {
+      const url = process.env[urlKey];
+      if (!url) continue;
+
+      // 用同样的前缀去取 token，避免把 A 库的 url 和 B 库的 token 配到一起
+      const prefix = urlKey.slice(0, urlKey.length - pair.url.length);
+      const token = process.env[`${prefix}${pair.token}`];
+      if (!token) continue;
+
+      // 只接受 REST(HTTPS) 端点，redis:// 连接串在 Serverless 里用不了
+      if (!/^https:\/\//.test(url)) continue;
+
+      return { url, token };
+    }
+  }
+
+  return null;
 }
 
 export function isRedisConfigured(): boolean {
