@@ -87,15 +87,6 @@ async function bumpFails(key: string): Promise<void> {
   }
 }
 
-async function clearFails(key: string): Promise<void> {
-  if (isRedisConfigured()) {
-    const redis = await getRedis();
-    await redis.del(key);
-    return;
-  }
-  memoryFails.delete(key);
-}
-
 export type AuthResult =
   | { ok: true }
   | { ok: false; status: 401 | 429 | 503; message: string };
@@ -112,24 +103,26 @@ export async function authorize(req: VercelRequest): Promise<AuthResult> {
     };
   }
 
-  // 单 IP 限流之外再加一道全局闸：换代理池也没法把爆破速率拉起来
+  const provided = extractPasscode(req);
+  const matched = provided.length > 0 && timingSafeEqual(sha256(provided), sha256(expected));
+
+  // 口令正确就直接放行。限流的目的只是拦爆破，
+  // 让每一次合法请求都先去 Redis 查两次计数、成功后再删一次，
+  // 等于给首屏白白加了 3 个往返（实测约 450ms）。
+  if (matched) return { ok: true };
+
+  // 只有口令错误才需要限流：先看有没有超限，再计数
   const ipKey = `bravekids:v1:fail:${clientIp(req)}`;
   const globalKey = 'bravekids:v1:fail:global';
   const [ipFails, globalFails] = await Promise.all([readFails(ipKey), readFails(globalKey)]);
+
+  // 超限时直接拒绝且不再累加，窗口到期后自动恢复
   if (ipFails >= MAX_FAILS || globalFails >= MAX_GLOBAL_FAILS) {
     return { ok: false, status: 429, message: '尝试次数过多，请稍后再试' };
   }
 
-  const provided = extractPasscode(req);
-  const matched = provided.length > 0 && timingSafeEqual(sha256(provided), sha256(expected));
-
-  if (!matched) {
-    await Promise.all([bumpFails(ipKey), bumpFails(globalKey)]);
-    // 固定延迟，正常人几乎不会输错，但能把在线爆破速率压到很低
-    await sleep(FAIL_DELAY_MS);
-    return { ok: false, status: 401, message: '口令不正确' };
-  }
-
-  await clearFails(ipKey);
-  return { ok: true };
+  await Promise.all([bumpFails(ipKey), bumpFails(globalKey)]);
+  // 固定延迟，正常人几乎不会输错，但能把在线爆破速率压到很低
+  await sleep(FAIL_DELAY_MS);
+  return { ok: false, status: 401, message: '口令不正确' };
 }

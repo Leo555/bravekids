@@ -43,7 +43,16 @@ const CREDENTIAL_SUFFIXES = [
   { url: 'REDIS_REST_API_URL', token: 'REDIS_REST_API_TOKEN' },
 ] as const;
 
+/** 环境变量在函数生命周期内不会变，解析一次就缓存，避免每个请求都遍历 process.env */
+let credCache: { url: string; token: string } | null | undefined;
+
 function readRestCredentials(): { url: string; token: string } | null {
+  if (credCache !== undefined) return credCache;
+  credCache = resolveRestCredentials();
+  return credCache;
+}
+
+function resolveRestCredentials(): { url: string; token: string } | null {
   const keys = Object.keys(process.env);
 
   for (const pair of CREDENTIAL_SUFFIXES) {
