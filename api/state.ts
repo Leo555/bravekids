@@ -20,8 +20,17 @@ import {
 const MAX_BODY_BYTES = 512 * 1024;
 const KID_IDS = ['cun', 'heng'];
 
+/**
+ * 诊断用：模块级变量在同一个函数实例里会保留，
+ * 第一次请求是冷启动，之后是热的。配合 X-Redis-Ms 就能分清
+ * 慢在「函数冷启动」还是「Redis 往返」。
+ */
+let warm = false;
+
 async function route(req: VercelRequest, res: VercelResponse) {
   res.setHeader('Cache-Control', 'no-store');
+  res.setHeader('X-Cold-Start', warm ? '0' : '1');
+  warm = true;
 
   if (req.method !== 'GET' && req.method !== 'PUT') {
     res.setHeader('Allow', 'GET, PUT');
@@ -44,7 +53,9 @@ async function route(req: VercelRequest, res: VercelResponse) {
   }
 
   if (req.method === 'GET') {
+    const t0 = Date.now();
     const kids = await readAllKids();
+    res.setHeader('X-Redis-Ms', String(Date.now() - t0));
     return res.status(200).json({ kids });
   }
 
