@@ -26,6 +26,7 @@ export default function Home({ kid }: { kid: Kid }) {
   const [timerTask, setTimerTask] = useState<DailyTask | null>(null);
   const [tipTask, setTipTask] = useState<DailyTask | null>(null);
   const [setting, setSetting] = useState(false);
+  const [confirmName, setConfirmName] = useState('');
 
   const dayRec = st.daily[today()] || {};
   const doneCount = kid.daily.filter((t) => dayRec[t.id]?.done).length;
@@ -313,7 +314,14 @@ export default function Home({ kid }: { kid: Kid }) {
         </button>
       </Sheet>
 
-      <Sheet open={setting} onClose={() => setSetting(false)} title="⚙️ 家长设置">
+      <Sheet
+        open={setting}
+        onClose={() => {
+          setSetting(false);
+          setConfirmName('');
+        }}
+        title="⚙️ 家长设置"
+      >
         <SyncLine />
         <div className="card tight">
           <b>{kid.name} 的统计</b>
@@ -325,17 +333,43 @@ export default function Home({ kid }: { kid: Kid }) {
             家务 {stats.choreTotal} 次 · 星星 {starsOf(kid, st)} 颗
           </p>
         </div>
-        <button
-          className="btn ghost block"
-          onClick={() => {
-            if (window.confirm(`确定要清空 ${kid.name} 的全部打卡记录吗？`)) {
+        <div className="card tight" style={{ border: '1px solid var(--danger-line)' }}>
+          <b style={{ color: 'var(--danger)' }}>⚠️ 危险操作</b>
+          <p className="muted" style={{ marginTop: 6 }}>
+            清空后会删除 {kid.name} 的全部打卡记录、星星、勋章和学习进度，且无法恢复。
+          </p>
+          <p className="muted" style={{ marginTop: 6 }}>
+            请完整输入孩子的名字
+            <b style={{ color: 'var(--ink)' }}>「{kid.name}」</b> 以确认：
+          </p>
+          <input
+            className="text-input"
+            value={confirmName}
+            placeholder={`请输入 ${kid.name}`}
+            onChange={(e) => setConfirmName(e.target.value)}
+          />
+          <button
+            className="btn block big"
+            style={{
+              marginTop: 12,
+              background: confirmName.trim() === kid.name
+                ? 'linear-gradient(160deg, #ff8a96, var(--danger))'
+                : 'rgba(31, 35, 48, 0.08)',
+              color: confirmName.trim() === kid.name ? '#fff' : 'var(--ink-2)',
+              boxShadow: confirmName.trim() === kid.name
+                ? '0 6px 16px rgba(255, 93, 108, 0.3)'
+                : 'none',
+            }}
+            disabled={confirmName.trim() !== kid.name}
+            onClick={() => {
               resetKid(kid.id);
+              setConfirmName('');
               setSetting(false);
-            }
-          }}
-        >
-          🗑️ 清空 {kid.name} 的记录
-        </button>
+            }}
+          >
+            🗑️ 确认清空 {kid.name} 的记录
+          </button>
+        </div>
       </Sheet>
     </>
   );
