@@ -96,7 +96,7 @@ export default function HanziPage({ kid }: { kid: Kid }) {
         </div>
 
         <p className="muted" style={{ textAlign: 'center', marginTop: 14 }}>
-          共 {HANZI.length} 个常用字，分成 {HANZI_GROUPS.length} 组
+          部编版一年级上册《写字表》{HANZI.length} 个会写字，按课本分 {HANZI_GROUPS.length} 组
         </p>
 
         <button className="btn ghost block" style={{ marginTop: 12 }} onClick={() => go('home')}>
