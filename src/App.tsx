@@ -72,13 +72,13 @@ export default function App() {
         page = <Poems kid={kid} openId={param} />;
         break;
       case 'hanzi':
-        page = <HanziPage kid={kid} />;
+        page = <HanziPage kid={kid} autoQuiz={param === 'quiz'} />;
         break;
       case 'words':
-        page = <WordsPage kid={kid} />;
+        page = <WordsPage kid={kid} autoQuiz={param === 'quiz'} />;
         break;
       case 'math':
-        page = <MathPage kid={kid} />;
+        page = <MathPage kid={kid} autoQuiz={param === 'quiz'} />;
         break;
       case 'pinyin':
         page = <PinyinPage kid={kid} />;

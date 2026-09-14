@@ -1,25 +1,20 @@
 import { useMemo, useState } from 'react';
 import type { Kid } from '../types';
-import { MULTI, MULTI_COLUMNS } from '../data/math';
-import { AppBar, Bar, Chips, Sheet } from '../components/ui';
+import { MULTI } from '../data/math';
+import { AppBar, Bar, Sheet } from '../components/ui';
 import Quiz, { type QuizQuestion, shuffle } from '../components/Quiz';
-import { toggleLearned, useAppState } from '../store';
+import { addLearned, useAppState } from '../store';
 import { back, go } from '../router';
+import { sfxTap } from '../lib/sound';
 import { speak } from '../lib/speech';
-import { sfxDing, sfxTap } from '../lib/sound';
-import { confettiBurst } from '../lib/celebrate';
-import { bumpStudy, learnOnce } from '../lib/study';
+import { bumpStudy } from '../lib/study';
 
-const COLS = ['1', '2', '3', '4', '5', '6', '7', '8', '9'];
-
-export default function MathPage({ kid }: { kid: Kid }) {
+export default function MathPage({ kid, autoQuiz }: { kid: Kid; autoQuiz?: boolean }) {
   const app = useAppState();
   const st = app.kids[kid.id];
-  const [col, setCol] = useState('2');
-  const [quiz, setQuiz] = useState(false);
+  const [quiz, setQuiz] = useState(!!autoQuiz);
 
   const done = st.mathMastered.length;
-  const list = MULTI_COLUMNS[Number(col) - 1];
 
   const questions: QuizQuestion[] = useMemo(() => {
     if (!quiz) return [];
@@ -35,17 +30,13 @@ export default function MathPage({ kid }: { kid: Kid }) {
         return {
           id: m.id,
           prompt: (
-            <div>
-              <div style={{ fontSize: 46, fontWeight: 900 }}>
-                {m.a} × {m.b} = ?
-              </div>
-              <p className="muted">想一想口诀：{m.a <= m.b ? `${m.a}${m.b}...` : `${m.b}${m.a}...`}</p>
+            <div style={{ fontSize: 46, fontWeight: 900 }}>
+              {m.a} × {m.b} = ?
             </div>
           ),
-          onSpeak: () => speak(`${m.a}乘${m.b}等于几`, { lang: 'zh-CN', rate: 0.85 }),
           options: shuffle([m.result, ...Array.from(wrongs)]).map(String),
           answer: String(m.result),
-          renderOption: (o: string) => <span style={{ fontSize: 26 }}>{o}</span>,
+          renderOption: (o: string) => <span style={{ fontSize: 28 }}>{o}</span>,
         };
       });
   }, [quiz]);
@@ -72,60 +63,6 @@ export default function MathPage({ kid }: { kid: Kid }) {
           </button>
         </div>
 
-        <Chips items={COLS} value={col} onChange={setCol} label={(c) => `${c} 的乘法`} />
-
-        <div className="card tight">
-          <div className="row" style={{ marginBottom: 6 }}>
-            <b>{col} 的乘法口诀</b>
-            <div className="spacer" />
-            <button
-              className="btn sm"
-              onClick={() =>
-                speak(list.map((m) => m.chant).join('，'), { lang: 'zh-CN', rate: 0.8 })
-              }
-            >
-              🔊 整列读一遍
-            </button>
-          </div>
-          {list.map((m) => {
-            const ok = st.mathMastered.includes(m.id);
-            return (
-              <div
-                key={m.id}
-                className="row"
-                style={{ padding: '10px 2px', borderTop: '1px solid var(--line)' }}
-              >
-                <b style={{ width: 90, fontSize: 17 }}>
-                  {m.a} × {m.b} = {m.result}
-                </b>
-                <span style={{ flex: 1, fontFamily: 'var(--font-hand)', fontSize: 20 }}>
-                  {m.chant}
-                </span>
-                <button
-                  className="btn sm ghost"
-                  onClick={() => speak(m.chant, { lang: 'zh-CN', rate: 0.75 })}
-                >
-                  🔊
-                </button>
-                <button
-                  className={`check${ok ? ' on' : ''}`}
-                  style={{ width: 34, height: 34, flex: '0 0 34px', fontSize: 16 }}
-                  onClick={() => {
-                    toggleLearned(kid.id, 'mathMastered', m.id);
-                    if (!ok) {
-                      sfxDing();
-                      bumpStudy(kid, 'math');
-                      if (done + 1 === 45) confettiBurst();
-                    }
-                  }}
-                >
-                  {ok ? '✓' : ''}
-                </button>
-              </div>
-            );
-          })}
-        </div>
-
         <div className="section-title">📋 完整口诀表</div>
         <div className="card tight">
           <div className="mt">
@@ -143,7 +80,6 @@ export default function MathPage({ kid }: { kid: Kid }) {
                     onClick={() => {
                       sfxTap();
                       speak(m.chant, { lang: 'zh-CN', rate: 0.75 });
-                      setCol(String(b));
                     }}
                   >
                     {m.a}×{m.b}
@@ -163,12 +99,17 @@ export default function MathPage({ kid }: { kid: Kid }) {
         </button>
       </div>
 
-      <Sheet open={quiz} onClose={() => setQuiz(false)} title="🎯 口诀闯关">
+      <Sheet open={quiz} onClose={() => setQuiz(false)} title="🎯 口诀闯关" center>
         {quiz && (
           <Quiz
             questions={questions}
-            onCorrect={(q) => learnOnce(kid, 'mathMastered', q.id, 'math')}
-            onDone={() => setQuiz(false)}
+            gridOptions
+            onCorrect={(q) => addLearned(kid.id, 'mathMastered', q.id)}
+            onDone={() => {
+              // 完成 10 道闯关题才算今日打卡
+              bumpStudy(kid, 'math');
+              setQuiz(false);
+            }}
           />
         )}
       </Sheet>

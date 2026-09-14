@@ -83,11 +83,14 @@ export function Sheet({
   onClose,
   title,
   children,
+  center = false,
 }: {
   open: boolean;
   onClose: () => void;
   title?: string;
   children: ReactNode;
+  /** 居中显示（默认是底部抽屉） */
+  center?: boolean;
 }) {
   useEffect(() => {
     if (!open) return;
@@ -101,7 +104,7 @@ export function Sheet({
   if (!open) return null;
   return (
     <div
-      className="sheet-mask"
+      className={center ? 'sheet-mask center' : 'sheet-mask'}
       onClick={(e) => {
         if (e.target === e.currentTarget) {
           sfxTap();
@@ -109,7 +112,7 @@ export function Sheet({
         }
       }}
     >
-      <div className="sheet">
+      <div className={center ? 'sheet center' : 'sheet'}>
         <div className="row">
           {title && <h3>{title}</h3>}
           <div className="spacer" />

@@ -68,7 +68,8 @@ export const KIDS: Kid[] = [
         kind: 'study',
         stars: 2,
         route: 'math',
-        tip: '先背一列，再玩闯关小测。',
+        dailyGoal: 1,
+        tip: '完成 10 道口诀闯关题即可打卡。',
       },
     ],
     weekly: [

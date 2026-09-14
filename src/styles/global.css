@@ -876,6 +876,18 @@ button {
 }
 
 /* 测验 */
+.quiz-opts-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.quiz-opts-grid .quiz-opt {
+  margin: 0;
+  font-size: 24px;
+}
+
 .quiz-opt {
   width: 100%;
   min-height: 60px;
@@ -965,6 +977,30 @@ button {
   border-radius: 28px 28px 0 0;
   padding: 18px 16px calc(24px + var(--safe-b));
   animation: up 0.28s cubic-bezier(0.2, 0.9, 0.2, 1);
+}
+
+/* 居中弹层：口诀闯关等需要聚焦在屏幕中央的内容 */
+.sheet-mask.center {
+  align-items: center;
+  padding: 20px;
+}
+
+.sheet.center {
+  width: 100%;
+  max-width: 520px;
+  border-radius: 24px;
+  animation: pop 0.22s cubic-bezier(0.2, 0.9, 0.2, 1);
+}
+
+@keyframes pop {
+  from {
+    transform: scale(0.92);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 
 .sheet h3 {

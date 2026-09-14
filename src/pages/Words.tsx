@@ -10,14 +10,14 @@ import { sfxDing, sfxTap, sfxWin } from '../lib/sound';
 import { confettiBurst } from '../lib/celebrate';
 import { bumpStudy, learnOnce } from '../lib/study';
 
-export default function WordsPage({ kid }: { kid: Kid }) {
+export default function WordsPage({ kid, autoQuiz }: { kid: Kid; autoQuiz?: boolean }) {
   const app = useAppState();
   const st = app.kids[kid.id];
   const [unit, setUnit] = useState(WORD_UNITS[0]);
   const [tab, setTab] = useState<'card' | 'list'>('card');
   const [idx, setIdx] = useState(0);
   const [flipped, setFlipped] = useState(false);
-  const [quiz, setQuiz] = useState<'zh2en' | 'listen' | null>(null);
+  const [quiz, setQuiz] = useState<'zh2en' | 'listen' | null>(autoQuiz ? 'listen' : null);
 
   const list = useMemo(() => WORDS.filter((w) => w.unit === unit), [unit]);
   const cur = list[Math.min(idx, list.length - 1)];

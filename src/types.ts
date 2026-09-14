@@ -44,8 +44,10 @@ export interface WeeklyTask {
   id: string;
   title: string;
   emoji: string;
-  /** 每周需要几次 */
+  /** 每周需要几次（达成目标） */
   timesPerWeek: number;
+  /** 每周最多能完成几次（防止乱刷），默认 5 */
+  maxPerWeek?: number;
   stars: number;
   tip?: string;
 }

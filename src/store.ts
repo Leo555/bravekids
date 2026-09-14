@@ -182,11 +182,18 @@ export function toggleDaily(id: KidId, taskId: string, date = today()) {
   setDaily(id, taskId, { done: !rec?.done }, date);
 }
 
-/** 每周任务：增减完成次数 */
-export function bumpWeekly(id: KidId, taskId: string, delta: number, wk = weekKey()) {
+/** 每周任务：增减完成次数。max 为本周该任务的上限（默认 5），防止乱刷。 */
+export function bumpWeekly(
+  id: KidId,
+  taskId: string,
+  delta: number,
+  wk = weekKey(),
+  max = 5,
+) {
   patchKid(id, (k) => {
     const week = { ...(k.weekly[wk] || {}) };
-    week[taskId] = Math.max(0, (week[taskId] || 0) + delta);
+    const next = Math.min(max, Math.max(0, (week[taskId] || 0) + delta));
+    week[taskId] = next;
     return { ...k, weekly: { ...k.weekly, [wk]: week } };
   });
 }

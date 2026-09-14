@@ -19,10 +19,13 @@ export default function Quiz({
   questions,
   onDone,
   onCorrect,
+  gridOptions,
 }: {
   questions: QuizQuestion[];
   onDone: (score: number) => void;
   onCorrect?: (q: QuizQuestion) => void;
+  /** 选项用 2×2 网格排列（默认竖排） */
+  gridOptions?: boolean;
 }) {
   const [i, setI] = useState(0);
   const [picked, setPicked] = useState<string | null>(null);
@@ -94,18 +97,20 @@ export default function Quiz({
         )}
       </div>
 
-      {q.options.map((o) => {
-        let cls = 'quiz-opt';
-        if (picked) {
-          if (o === q.answer) cls += ' right';
-          else if (o === picked) cls += ' wrong';
-        }
-        return (
-          <button key={o} className={cls} onClick={() => pick(o)}>
-            {q.renderOption ? q.renderOption(o) : o}
-          </button>
-        );
-      })}
+      <div className={gridOptions ? 'quiz-opts-grid' : undefined}>
+        {q.options.map((o) => {
+          let cls = 'quiz-opt';
+          if (picked) {
+            if (o === q.answer) cls += ' right';
+            else if (o === picked) cls += ' wrong';
+          }
+          return (
+            <button key={o} className={cls} onClick={() => pick(o)}>
+              {q.renderOption ? q.renderOption(o) : o}
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }

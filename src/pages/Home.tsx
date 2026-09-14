@@ -12,7 +12,7 @@ import CounterSheet from '../components/CounterSheet';
 import TimerSheet from '../components/TimerSheet';
 import { SyncLine } from '../components/SyncBadge';
 import { goalDone, levelOf, starsOf, statsOf, weeklyCount } from '../lib/progress';
-import { WEEK_LABEL, parseKey, prettyDate, today, weekDays } from '../lib/date';
+import { WEEK_LABEL, parseKey, prettyDate, today, weekDays, weekKey } from '../lib/date';
 import { sfxDing, sfxTap } from '../lib/sound';
 import { confettiBurst, flyStarFromEvent } from '../lib/celebrate';
 import { praise } from '../lib/speech';
@@ -126,7 +126,12 @@ export default function Home({ kid }: { kid: Kid }) {
         </div>
         {kid.daily.map((task) => {
           const rec = dayRec[task.id];
-          const done = !!rec?.done;
+          // study 类型任务的"完成"以进度值（value）为准，
+          // 这样云端残留的脏 done 标记（来自旧的"点勾选就打卡"逻辑）会被自动忽略
+          const done =
+            task.kind === 'study'
+              ? (rec?.value ?? 0) >= (task.dailyGoal ?? 1)
+              : !!rec?.done;
           return (
             <div key={task.id} className={`task${done ? ' done' : ''}`}>
               <button className="emoji" onClick={() => openTask(task)}>
@@ -155,13 +160,41 @@ export default function Home({ kid }: { kid: Kid }) {
                   </div>
                 )}
               </button>
-              <button
-                className={`check${done ? ' on' : ''}`}
-                onClick={(e) => toggle(task, e)}
-                aria-label="打卡"
-              >
-                {done ? '✓' : ''}
-              </button>
+              {task.kind === 'study'
+                ? done
+                  ? (
+                    <button
+                      className="check on"
+                      onClick={() => {
+                        sfxTap();
+                        setDaily(kid.id, task.id, { value: 0, done: false });
+                      }}
+                      aria-label="取消打卡"
+                    >
+                      ✓
+                    </button>
+                  )
+                  : (
+                    <button
+                      className="check"
+                      onClick={() => {
+                        sfxTap();
+                        if (task.route) go(task.route, 'quiz');
+                      }}
+                      aria-label="去挑战"
+                    >
+                      ▶
+                    </button>
+                  )
+                : (
+                  <button
+                    className={`check${done ? ' on' : ''}`}
+                    onClick={(e) => toggle(task, e)}
+                    aria-label="打卡"
+                  >
+                    {done ? '✓' : ''}
+                  </button>
+                )}
             </div>
           );
         })}
@@ -173,7 +206,9 @@ export default function Home({ kid }: { kid: Kid }) {
         </div>
         {kid.weekly.map((task) => {
           const n = weeklyCount(st, task.id);
+          const max = task.maxPerWeek ?? 5;
           const ok = n >= task.timesPerWeek;
+          const capped = n >= max;
           return (
             <div key={task.id} className={`task${ok ? ' done' : ''}`}>
               <div className="emoji">{task.emoji}</div>
@@ -184,6 +219,9 @@ export default function Home({ kid }: { kid: Kid }) {
                 <span>
                   本周 {n} / {task.timesPerWeek} 次 · {task.tip}
                 </span>
+                <span style={{ display: 'block', color: 'var(--ink-3)', fontSize: 11, marginTop: 2 }}>
+                  本周最多记 {max} 次
+                </span>
               </div>
               <div className="row" style={{ gap: 6 }}>
                 {n > 0 && (
@@ -191,7 +229,7 @@ export default function Home({ kid }: { kid: Kid }) {
                     className="btn sm ghost"
                     onClick={() => {
                       sfxTap();
-                      bumpWeekly(kid.id, task.id, -1);
+                      bumpWeekly(kid.id, task.id, -1, weekKey(), max);
                     }}
                   >
                     －
@@ -199,15 +237,16 @@ export default function Home({ kid }: { kid: Kid }) {
                 )}
                 <button
                   className="btn sm primary"
+                  disabled={capped}
                   onClick={(e) => {
-                    bumpWeekly(kid.id, task.id, 1);
+                    bumpWeekly(kid.id, task.id, 1, weekKey(), max);
                     sfxDing();
                     flyStarFromEvent(e, task.emoji);
                     if (n + 1 === task.timesPerWeek) confettiBurst(24);
                     praise(kid.nick);
                   }}
                 >
-                  完成 1 次
+                  {capped ? '本周已满' : '完成 1 次'}
                 </button>
               </div>
             </div>

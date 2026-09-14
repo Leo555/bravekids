@@ -10,12 +10,12 @@ import { sfxDing, sfxTap, sfxWin } from '../lib/sound';
 import { confettiBurst } from '../lib/celebrate';
 import { bumpStudy, learnOnce } from '../lib/study';
 
-export default function HanziPage({ kid }: { kid: Kid }) {
+export default function HanziPage({ kid, autoQuiz }: { kid: Kid; autoQuiz?: boolean }) {
   const app = useAppState();
   const st = app.kids[kid.id];
   const [group, setGroup] = useState<string>(HANZI_GROUPS[0]);
   const [open, setOpen] = useState<Hanzi | null>(null);
-  const [quiz, setQuiz] = useState(false);
+  const [quiz, setQuiz] = useState(!!autoQuiz);
 
   const list = useMemo(() => HANZI.filter((h) => h.group === group), [group]);
   const done = st.learnedHanzi.length;
