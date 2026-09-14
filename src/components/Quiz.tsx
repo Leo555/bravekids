@@ -1,4 +1,4 @@
-import { type ReactNode, useState } from 'react';
+import { type ReactNode, useEffect, useState } from 'react';
 import { Bar } from './ui';
 import { sfxRight, sfxWin, sfxWrong } from '../lib/sound';
 import { confettiBurst } from '../lib/celebrate';
@@ -32,6 +32,14 @@ export default function Quiz({
   const [score, setScore] = useState(0);
   const [finished, setFinished] = useState(false);
   const q = questions[i];
+
+  // 切到新题（含初始第 1 题）时，自动朗读一次；
+  // 没有 onSpeak 的题目（如口诀）保持安静，「再听一次」按钮也不会出现。
+  useEffect(() => {
+    if (finished || !q) return;
+    const id = window.setTimeout(() => q.onSpeak?.(), 250);
+    return () => window.clearTimeout(id);
+  }, [i, finished, q?.onSpeak]);
 
   if (finished) {
     const full = score === questions.length;

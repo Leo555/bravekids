@@ -896,7 +896,10 @@ button {
 
 .quiz-opts-grid .quiz-opt {
   margin: 0;
-  font-size: 24px;
+  min-height: 64px;
+  padding: 10px 8px;
+  text-align: center;
+  word-break: break-word;
 }
 
 .quiz-opt {

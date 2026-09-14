@@ -251,10 +251,12 @@ export default function WordsPage({ kid, autoQuiz }: { kid: Kid; autoQuiz?: bool
         open={!!quiz}
         onClose={() => setQuiz(null)}
         title={quiz === 'zh2en' ? '🎯 看图选词' : '🎧 听音选意思'}
+        center
       >
         {quiz && (
           <Quiz
             questions={questions}
+            gridOptions
             onCorrect={(q) => learnOnce(kid, 'learnedWords', q.id, 'words')}
             onDone={() => setQuiz(null)}
           />

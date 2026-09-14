@@ -108,10 +108,11 @@ export default function HanziPage({ kid, autoQuiz }: { kid: Kid; autoQuiz?: bool
         {open && <CharCard kid={kid} h={open} learned={st.learnedHanzi.includes(open.char)} />}
       </Sheet>
 
-      <Sheet open={quiz} onClose={() => setQuiz(false)} title="🎯 听音认字挑战">
+      <Sheet open={quiz} onClose={() => setQuiz(false)} title="🎯 听音认字挑战" center>
         {quiz && (
           <Quiz
             questions={questions}
+            gridOptions
             onCorrect={(q) => learnOnce(kid, 'learnedHanzi', q.id, 'hanzi')}
             onDone={() => setQuiz(false)}
           />
