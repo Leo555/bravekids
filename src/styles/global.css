@@ -664,6 +664,17 @@ button {
   width: 20px;
 }
 
+/* 诗句末尾的标点（逗号 / 句号）按行内文本渲染，和汉字基线对齐 */
+.punc-inline {
+  display: inline-block;
+  font-family: var(--font-hand);
+  font-size: 32px;
+  line-height: 1.25;
+  color: var(--ink);
+  /* 给一个极小的左间距，让标点和前一字视觉上分得开 */
+  padding-left: 1px;
+}
+
 /* 汉字 */
 .hz-grid {
   display: grid;

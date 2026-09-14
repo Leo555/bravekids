@@ -30,11 +30,16 @@ function Line({
     <button className={`pline${active ? ' active' : ''}`} onClick={onClick}>
       {Array.from(line.text).map((ch, i) => {
         const isHan = HAN.test(ch);
-        const py = isHan ? pys[k++] : '';
+        // 标点直接当行内文本渲染，不要套 pchar 容器：
+        // pchar 是 32px 汉字的固定盒模型，标点宽度不够会被 flex-wrap 推到下一行
+        if (!isHan) {
+          return <span key={i} className="punc-inline">{ch}</span>;
+        }
+        const py = pys[k++];
         return (
           <span
             key={i}
-            className={`pchar${isHan ? '' : ' punc'}${mode === 'test' && isHan ? ' hide' : ''}`}
+            className={`pchar${mode === 'test' ? ' hide' : ''}`}
           >
             <span className="py">{mode === 'char' ? '' : py}</span>
             <span className="zi">{ch}</span>
