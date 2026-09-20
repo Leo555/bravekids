@@ -78,17 +78,6 @@ export interface Kid {
   daily: DailyTask[];
   weekly: WeeklyTask[];
   goals: LongGoal[];
-  /**
-   * 要背哪些古诗。这里只放「规则」而不是算好的 id 列表，
-   * 是为了让 data/kids.ts 不去 import 体积很大的 data/poems.ts —— 否则
-   * 33KB 诗词数据会被拖进首屏 bundle。实际 id 在古诗页按规则解析。
-   */
-  poemPlan: {
-    /** 跳过启蒙档(stage 1)的前几首 */
-    skipStage1: number;
-    /** 一共背几首 */
-    take: number;
-  };
   /** 汉字学习范围（取前 N 个） */
   hanziCount: number;
   /** 单词学习范围（取前 N 个） */

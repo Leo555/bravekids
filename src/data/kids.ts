@@ -2,8 +2,8 @@ import type { Kid } from '../types';
 
 /**
  * 注意：这里刻意不 import ./poems。
- * kids.ts 会进首屏 bundle，而 poems.ts 有 33KB，
- * 古诗清单改用 poemPlan 规则描述，真正的 id 在古诗页解析（见 lib/poemPlan.ts）。
+ * kids.ts 会进首屏 bundle，而 poems.ts 体积较大，
+ * 古诗页直接展示全部诗库，每个孩子的「目标首数」看 goals 里的 poems target。
  */
 export const KIDS: Kid[] = [
   {
@@ -17,7 +17,6 @@ export const KIDS: Kid[] = [
     color2: '#ffb547',
     slogan: '一天不断，越跳越强！',
     features: ['words', 'math', 'poems'],
-    poemPlan: { skipStage1: 10, take: 30 },
     hanziCount: 0,
     wordCount: 300,
     daily: [
@@ -59,7 +58,7 @@ export const KIDS: Kid[] = [
         kind: 'study',
         stars: 2,
         route: 'poems',
-        tip: '两天背一首，30 首轻松拿下。',
+        tip: '两天背一首，56 首轻松拿下。',
       },
       {
         id: 'multi',
@@ -92,7 +91,7 @@ export const KIDS: Kid[] = [
     ],
     goals: [
       { id: 'g-words', title: '英语单词', emoji: '🔤', target: 300, unit: '个', kind: 'words', route: 'words' },
-      { id: 'g-poems', title: '古诗', emoji: '📜', target: 30, unit: '首', kind: 'poems', route: 'poems' },
+      { id: 'g-poems', title: '古诗', emoji: '📜', target: 56, unit: '首', kind: 'poems', route: 'poems' },
       { id: 'g-math', title: '乘法口诀', emoji: '✖️', target: 45, unit: '句', kind: 'math', route: 'math' },
     ],
   },
@@ -107,8 +106,7 @@ export const KIDS: Kid[] = [
     color2: '#6ed4c0',
     slogan: '我要学会连跳啦！',
     features: ['hanzi', 'pinyin', 'poems'],
-    poemPlan: { skipStage1: 0, take: 10 },
-    hanziCount: 100,
+    hanziCount: 300,
     wordCount: 0,
     daily: [
       {
@@ -137,8 +135,8 @@ export const KIDS: Kid[] = [
         kind: 'study',
         stars: 2,
         route: 'hanzi',
-        dailyGoal: 1,
-        tip: '每天认 1 个新字，半年认满 100 个！',
+        dailyGoal: 30,
+        tip: '每天认 30 个字（复习也算），认满 300 个！',
       },
       {
         id: 'pinyin',
@@ -156,7 +154,7 @@ export const KIDS: Kid[] = [
         kind: 'study',
         stars: 2,
         route: 'poems',
-        tip: '一周一首，10 首没问题！',
+        tip: '一周一首，22 首没问题！',
       },
     ],
     weekly: [
@@ -178,9 +176,9 @@ export const KIDS: Kid[] = [
       },
     ],
     goals: [
-      { id: 'g-hanzi', title: '认汉字', emoji: '🀄', target: 100, unit: '个', kind: 'hanzi', route: 'hanzi' },
+      { id: 'g-hanzi', title: '认汉字', emoji: '🀄', target: 300, unit: '个', kind: 'hanzi', route: 'hanzi' },
       { id: 'g-pinyin', title: '拼音字母', emoji: '🔠', target: 63, unit: '个', kind: 'pinyin', route: 'pinyin' },
-      { id: 'g-poems', title: '古诗', emoji: '📜', target: 10, unit: '首', kind: 'poems', route: 'poems' },
+      { id: 'g-poems', title: '古诗', emoji: '📜', target: 22, unit: '首', kind: 'poems', route: 'poems' },
     ],
   },
 ];

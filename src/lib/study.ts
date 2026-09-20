@@ -30,8 +30,9 @@ export function learnOnce(
   key: string,
   route: Route,
 ): boolean {
-  if (getState().kids[kid.id][field].includes(key)) return false;
-  addLearned(kid.id, field, key);
+  // 已认识的内容答对也计一次当日进度（复习算数），但列表不重复加
+  const known = getState().kids[kid.id][field].includes(key);
+  if (!known) addLearned(kid.id, field, key);
   bumpStudy(kid, route);
-  return true;
+  return !known;
 }

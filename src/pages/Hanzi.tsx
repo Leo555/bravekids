@@ -3,7 +3,7 @@ import type { Hanzi, Kid } from '../types';
 import { HANZI, HANZI_GROUPS } from '../data/hanzi';
 import { AppBar, Bar, Chips, Sheet } from '../components/ui';
 import Quiz, { type QuizQuestion, shuffle } from '../components/Quiz';
-import { toggleLearned, useAppState } from '../store';
+import { addLearned, useAppState } from '../store';
 import { back, go } from '../router';
 import { speak } from '../lib/speech';
 import { sfxDing, sfxTap, sfxWin } from '../lib/sound';
@@ -96,7 +96,7 @@ export default function HanziPage({ kid, autoQuiz }: { kid: Kid; autoQuiz?: bool
         </div>
 
         <p className="muted" style={{ textAlign: 'center', marginTop: 14 }}>
-          部编版一年级上册《写字表》{HANZI.length} 个会写字，按课本分 {HANZI_GROUPS.length} 组
+          部编版一、二年级《写字表》{HANZI.length} 个会写字，按课本分 {HANZI_GROUPS.length} 组
         </p>
 
         <button className="btn ghost block" style={{ marginTop: 12 }} onClick={() => go('home')}>
@@ -155,18 +155,17 @@ function CharCard({ kid, h, learned }: { kid: Kid; h: Hanzi; learned: boolean })
         className={`btn ${learned ? 'ghost' : 'primary'} block big`}
         style={{ marginTop: 10 }}
         onClick={() => {
-          toggleLearned(kid.id, 'learnedHanzi', h.char);
-          if (!learned) {
-            sfxDing();
-            confettiBurst(18);
-            if (bumpStudy(kid, 'hanzi')) {
-              sfxWin();
-              confettiBurst(40);
-            }
+          // 认识/复习都算一次进度：新字记入已认识列表，旧字直接计数
+          addLearned(kid.id, 'learnedHanzi', h.char);
+          sfxDing();
+          confettiBurst(learned ? 12 : 18);
+          if (bumpStudy(kid, 'hanzi')) {
+            sfxWin();
+            confettiBurst(40);
           }
         }}
       >
-        {learned ? '已认识 ✓ 点这里取消' : '我认识啦！+1 ⭐'}
+        {learned ? '再复习一遍 +1 ⭐' : '我认识啦！+1 ⭐'}
       </button>
     </div>
   );

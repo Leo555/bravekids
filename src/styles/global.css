@@ -105,7 +105,7 @@ button {
 .wrap {
   max-width: 720px;
   margin: 0 auto;
-  padding: 0 16px;
+  padding: 0 14px;
 }
 
 .appbar {
@@ -621,6 +621,8 @@ button {
 }
 
 .pline {
+  /* button 默认宽度收缩到内容宽，不占满会让整行诗句偏左 */
+  width: 100%;
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
@@ -662,17 +664,9 @@ button {
 
 .pchar.punc {
   width: 20px;
-}
-
-/* 诗句末尾的标点（逗号 / 句号）按行内文本渲染，和汉字基线对齐 */
-.punc-inline {
-  display: inline-block;
-  font-family: var(--font-hand);
-  font-size: 32px;
-  line-height: 1.25;
-  color: var(--ink);
-  /* 给一个极小的左间距，让标点和前一字视觉上分得开 */
-  padding-left: 1px;
+  /* 向左与前一个字盒重叠 7px（前字盒右侧空白 5px + gap 2px），
+     让标点字形紧贴在最后一个字的右下角，而不是悬在半格中间 */
+  margin-left: -7px;
 }
 
 /* 汉字 */

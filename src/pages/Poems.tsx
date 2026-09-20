@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { Kid, Poem, PoemLine } from '../types';
 import { POEMS } from '../data/poems';
 import { AppBar, Bar, Sheet } from '../components/ui';
@@ -30,16 +30,11 @@ function Line({
     <button className={`pline${active ? ' active' : ''}`} onClick={onClick}>
       {Array.from(line.text).map((ch, i) => {
         const isHan = HAN.test(ch);
-        // 标点直接当行内文本渲染，不要套 pchar 容器：
-        // pchar 是 32px 汉字的固定盒模型，标点宽度不够会被 flex-wrap 推到下一行
-        if (!isHan) {
-          return <span key={i} className="punc-inline">{ch}</span>;
-        }
-        const py = pys[k++];
+        const py = isHan ? pys[k++] : '';
         return (
           <span
             key={i}
-            className={`pchar${mode === 'test' ? ' hide' : ''}`}
+            className={`pchar${isHan ? '' : ' punc'}${mode === 'test' && isHan ? ' hide' : ''}`}
           >
             <span className="py">{mode === 'char' ? '' : py}</span>
             <span className="zi">{ch}</span>
@@ -258,28 +253,35 @@ function Detail({
 export default function Poems({ kid, openId: routeId }: { kid: Kid; openId?: string }) {
   const app = useAppState();
   const st = app.kids[kid.id];
-  // 按 poemPlan 解析出这个孩子要背的诗：启蒙档跳过前 skipStage1 首，
-  // 接上进阶档，一共取 take 首。等价于以前写死在 kids.ts 里的那份清单。
-  const list = useMemo(() => {
-    const stage1 = POEMS.filter((p) => p.stage === 1);
-    const stage2 = POEMS.filter((p) => p.stage === 2);
-    return [...stage1.slice(kid.poemPlan.skipStage1), ...stage2].slice(0, kid.poemPlan.take);
-  }, [kid.poemPlan]);
-
-  const extra = useMemo(() => {
-    const chosen = new Set(list.map((p) => p.id));
-    return POEMS.filter((p) => !chosen.has(p.id));
-  }, [list]);
-  const [showExtra, setShowExtra] = useState(false);
+  // 诗库全部直接展示，不再区分主清单 / 加分诗库；
+  // 每个孩子的「目标首数」由 goals 里的 poems target 决定，多背也欢迎。
+  const list = POEMS;
 
   // 当前翻开哪一首由 URL 决定（#/cun/poems/jingyesi）：
   // 读到一半刷新不会丢，也能把某一首直接存成书签发给家长
   const openId = routeId ?? null;
   const setOpenId = (id: string | null) => go('poems', id ?? undefined);
 
-  const all = showExtra ? [...list, ...extra] : list;
-  const idx = all.findIndex((p) => p.id === openId);
-  const current = idx >= 0 ? all[idx] : null;
+  // 进入详情前记录列表滚动位置，返回列表时恢复，避免被 navigate 的 scrollTo(0) 顶回顶部
+  const listScroll = useRef(0);
+  const enterDetail = (id: string) => {
+    listScroll.current = window.scrollY;
+    setOpenId(id);
+  };
+
+  const idx = list.findIndex((p) => p.id === openId);
+  const current = idx >= 0 ? list[idx] : null;
+
+  // 从详情返回列表后，把滚动位置恢复到之前记录的地方
+  useEffect(() => {
+    if (!current && listScroll.current > 0) {
+      const y = listScroll.current;
+      listScroll.current = 0;
+      // 等列表渲染完成后再恢复，覆盖 navigate 里的 scrollTo(0)
+      const id = window.setTimeout(() => window.scrollTo({ top: y }), 0);
+      return () => window.clearTimeout(id);
+    }
+  }, [current]);
 
   if (current) {
     return (
@@ -287,8 +289,8 @@ export default function Poems({ kid, openId: routeId }: { kid: Kid; openId?: str
         kid={kid}
         poem={current}
         onBack={() => setOpenId(null)}
-        onPrev={idx > 0 ? () => setOpenId(all[idx - 1].id) : undefined}
-        onNext={idx < all.length - 1 ? () => setOpenId(all[idx + 1].id) : undefined}
+        onPrev={idx > 0 ? () => setOpenId(list[idx - 1].id) : undefined}
+        onNext={idx < list.length - 1 ? () => setOpenId(list[idx + 1].id) : undefined}
       />
     );
   }
@@ -323,7 +325,7 @@ export default function Poems({ kid, openId: routeId }: { kid: Kid; openId?: str
                 className={`poem-item${ok ? ' ok' : ''}`}
                 onClick={() => {
                   sfxTap();
-                  setOpenId(p.id);
+                  enterDetail(p.id);
                 }}
               >
                 <div className="e">{ok ? '✅' : p.emoji}</div>
@@ -335,41 +337,6 @@ export default function Poems({ kid, openId: routeId }: { kid: Kid; openId?: str
             );
           })}
         </div>
-
-        {!showExtra ? (
-          <button
-            className="btn ghost block"
-            style={{ marginTop: 16 }}
-            onClick={() => {
-              sfxTap();
-              setShowExtra(true);
-            }}
-          >
-            📚 还想再多背几首？打开加分诗库（{extra.length} 首）
-          </button>
-        ) : (
-          <>
-            <div className="section-title">✨ 加分诗库</div>
-            <div className="poem-list">
-              {extra.map((p) => {
-                const ok = st.learnedPoems.includes(p.id);
-                return (
-                  <button
-                    key={p.id}
-                    className={`poem-item${ok ? ' ok' : ''}`}
-                    onClick={() => setOpenId(p.id)}
-                  >
-                    <div className="e">{ok ? '✅' : p.emoji}</div>
-                    <div className="t">{p.title}</div>
-                    <div className="a">
-                      {p.dynasty} · {p.author}
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          </>
-        )}
 
         <button className="btn ghost block" style={{ marginTop: 18 }} onClick={() => go('home')}>
           ← 回到今天的打卡
