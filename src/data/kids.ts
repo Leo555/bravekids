@@ -135,8 +135,7 @@ export const KIDS: Kid[] = [
         kind: 'study',
         stars: 2,
         route: 'hanzi',
-        dailyGoal: 30,
-        tip: '每天认 30 个字（复习也算），认满 300 个！',
+        tip: '今天认 1 个新字，再全对通过听音认字挑战，就完成啦！',
       },
       {
         id: 'pinyin',

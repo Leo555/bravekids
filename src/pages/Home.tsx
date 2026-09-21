@@ -11,7 +11,7 @@ import { AppBar, Bar, Ring, Sheet } from '../components/ui';
 import CounterSheet from '../components/CounterSheet';
 import TimerSheet from '../components/TimerSheet';
 import { SyncLine } from '../components/SyncBadge';
-import { goalDone, levelOf, starsOf, statsOf, weeklyCount } from '../lib/progress';
+import { goalDone, isDailyDone, levelOf, starsOf, statsOf, weeklyCount } from '../lib/progress';
 import { WEEK_LABEL, parseKey, prettyDate, today, weekDays, weekKey } from '../lib/date';
 import { sfxDing, sfxTap } from '../lib/sound';
 import { confettiBurst, flyStarFromEvent } from '../lib/celebrate';
@@ -30,7 +30,7 @@ export default function Home({ kid }: { kid: Kid }) {
   const [confirmName, setConfirmName] = useState('');
 
   const dayRec = st.daily[today()] || {};
-  const doneCount = kid.daily.filter((t) => dayRec[t.id]?.done).length;
+  const doneCount = kid.daily.filter((t) => isDailyDone(t, dayRec[t.id])).length;
   const allDone = doneCount === kid.daily.length;
 
   function toggle(task: DailyTask, e: { clientX: number; clientY: number }) {
@@ -126,12 +126,9 @@ export default function Home({ kid }: { kid: Kid }) {
         </div>
         {kid.daily.map((task) => {
           const rec = dayRec[task.id];
-          // study 类型任务的"完成"以进度值（value）为准，
-          // 这样云端残留的脏 done 标记（来自旧的"点勾选就打卡"逻辑）会被自动忽略
-          const done =
-            task.kind === 'study'
-              ? (rec?.value ?? 0) >= (task.dailyGoal ?? 1)
-              : !!rec?.done;
+          // 统一用 isDailyDone 判定，保证与积分口径一致；
+          // 认汉字任务 = 认了新字(value>=1) + 挑战全对(done)
+          const done = isDailyDone(task, rec);
           return (
             <div key={task.id} className={`task${done ? ' done' : ''}`}>
               <button className="emoji" onClick={() => openTask(task)}>
@@ -149,9 +146,11 @@ export default function Home({ kid }: { kid: Kid }) {
                   {task.kind === 'timer' &&
                     (rec?.value ? `今天 ${rec.value} 个 · 最好 ${st.bestJumpMinute} 个` : `${task.seconds} 秒挑战 · 最好 ${st.bestJumpMinute} 个`)}
                   {task.kind === 'study' &&
-                    (task.dailyGoal
-                      ? `今天 ${rec?.value || 0} / ${task.dailyGoal} 个 · ${task.tip || ''}`
-                      : task.tip || '去学习页看看')}
+                    (task.route === 'hanzi'
+                      ? `今天认新字 ${rec?.value || 0} 个 · 挑战${rec?.done ? '已全对 ✅' : '未通过'} · ${task.tip || ''}`
+                      : task.dailyGoal
+                        ? `今天 ${rec?.value || 0} / ${task.dailyGoal} 个 · ${task.tip || ''}`
+                        : task.tip || '去学习页看看')}
                   {task.kind === 'simple' && (task.tip || '完成后打卡')}
                 </span>
                 {task.kind === 'counter' && (

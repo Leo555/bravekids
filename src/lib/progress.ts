@@ -1,4 +1,4 @@
-import type { Kid, KidState, LongGoal } from '../types';
+import type { DailyTask, Kid, KidState, LongGoal } from '../types';
 import { addDays, today, weekKey } from './date';
 
 export interface Stats {
@@ -17,10 +17,27 @@ export interface Stats {
   learned: { words: number; hanzi: number; poems: number; math: number; pinyin: number };
 }
 
+/**
+ * 判定一个每日任务是否「完成」，与 Home 页展示口径保持一致。
+ * - counter / timer / simple：看 done 标记
+ * - study：看进度值是否达到 dailyGoal
+ * - 认汉字(hanzi)任务例外：需要「认了新字(value>=1)」+「挑战全对(done)」两项都满足
+ */
+export function isDailyDone(
+  task: DailyTask,
+  rec: { done?: boolean; value?: number } | undefined,
+): boolean {
+  if (task.kind !== 'study') return !!rec?.done;
+  if (task.route === 'hanzi') {
+    return (rec?.value ?? 0) >= 1 && !!rec?.done;
+  }
+  return (rec?.value ?? 0) >= (task.dailyGoal ?? 1);
+}
+
 function dayDoneCount(kid: Kid, st: KidState, date: string): number {
   const rec = st.daily[date];
   if (!rec) return 0;
-  return kid.daily.filter((t) => rec[t.id]?.done).length;
+  return kid.daily.filter((t) => isDailyDone(t, rec[t.id])).length;
 }
 
 export function starsOf(kid: Kid, st: KidState): number {
@@ -28,7 +45,8 @@ export function starsOf(kid: Kid, st: KidState): number {
   const dailyMap = new Map(kid.daily.map((t) => [t.id, t.stars]));
   Object.values(st.daily).forEach((day) => {
     Object.entries(day).forEach(([tid, rec]) => {
-      if (rec.done) s += dailyMap.get(tid) ?? 1;
+      const task = kid.daily.find((t) => t.id === tid);
+      if (task && isDailyDone(task, rec)) s += dailyMap.get(tid) ?? 1;
     });
   });
   const weeklyMap = new Map(kid.weekly.map((t) => [t.id, t.stars]));

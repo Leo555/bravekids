@@ -3,12 +3,12 @@ import type { Hanzi, Kid } from '../types';
 import { HANZI, HANZI_GROUPS } from '../data/hanzi';
 import { AppBar, Bar, Chips, Sheet } from '../components/ui';
 import Quiz, { type QuizQuestion, shuffle } from '../components/Quiz';
-import { addLearned, useAppState } from '../store';
+import { useAppState } from '../store';
 import { back, go } from '../router';
 import { speak } from '../lib/speech';
 import { sfxDing, sfxTap, sfxWin } from '../lib/sound';
 import { confettiBurst } from '../lib/celebrate';
-import { bumpStudy, learnOnce } from '../lib/study';
+import { markHanziChallenge, markNewHanzi } from '../lib/study';
 
 export default function HanziPage({ kid, autoQuiz }: { kid: Kid; autoQuiz?: boolean }) {
   const app = useAppState();
@@ -23,9 +23,22 @@ export default function HanziPage({ kid, autoQuiz }: { kid: Kid; autoQuiz?: bool
 
   const questions: QuizQuestion[] = useMemo(() => {
     if (!quiz) return [];
-    const pool = shuffle(HANZI).slice(0, 10);
+    // 按学习进度出题：只考「已经认识」的字，孩子没学过的不出现。
+    // 认识的字按课本顺序（HANZI 数组原始顺序）排，取最靠前、最早学的那些，
+    // 让孩子先复习最熟悉的字，不会一上来就遇到后面的生字。
+    const learnedSet = new Set(st.learnedHanzi);
+    const known = HANZI.filter((h) => learnedSet.has(h.char));
+
+    // 认识的字太少（不足 4 个）时，从当前选中的分组里抽字，够数但更简单
+    const source = known.length >= 4 ? known : list;
+    const count = Math.min(10, Math.max(4, source.length));
+    const pool = shuffle(source).slice(0, count);
+
     return pool.map((h) => {
-      const others = shuffle(HANZI.filter((x) => x.char !== h.char)).slice(0, 3);
+      // 干扰项也只在「已认识」的字里挑，避免用生字吓到孩子
+      const distractors = shuffle(known.filter((x) => x.char !== h.char)).slice(0, 3);
+      const fill = shuffle(list.filter((x) => x.char !== h.char)).slice(0, 3 - distractors.length);
+      const options = shuffle([h.char, ...distractors.map((o) => o.char), ...fill.map((o) => o.char)]);
       return {
         id: h.char,
         prompt: (
@@ -36,14 +49,14 @@ export default function HanziPage({ kid, autoQuiz }: { kid: Kid; autoQuiz?: bool
           </div>
         ),
         onSpeak: () => speak(`${h.char}。${h.words[0]}`, { lang: 'zh-CN', rate: 0.7 }),
-        options: shuffle([h.char, ...others.map((o) => o.char)]),
+        options,
         answer: h.char,
         renderOption: (o) => (
           <span style={{ fontFamily: 'var(--font-hand)', fontSize: 32 }}>{o}</span>
         ),
       };
     });
-  }, [quiz]);
+  }, [quiz, st.learnedHanzi, list]);
 
   return (
     <>
@@ -69,8 +82,15 @@ export default function HanziPage({ kid, autoQuiz }: { kid: Kid; autoQuiz?: bool
           <p className="muted" style={{ marginTop: 8 }}>
             点一个字看大字卡，听读音、看组词，会了就点"我认识啦"。
           </p>
-          <button className="btn primary block" style={{ marginTop: 10 }} onClick={() => setQuiz(true)}>
-            🎯 听音认字挑战（10 题）
+          <button
+            className="btn primary block"
+            style={{ marginTop: 10 }}
+            disabled={done < 4}
+            onClick={() => setQuiz(true)}
+          >
+            {done < 4
+              ? '🎯 先认识 4 个字，再来挑战吧'
+              : `🎯 听音认字挑战（只考你认识的 ${Math.min(10, done)} 个字）`}
           </button>
         </div>
 
@@ -113,8 +133,17 @@ export default function HanziPage({ kid, autoQuiz }: { kid: Kid; autoQuiz?: bool
           <Quiz
             questions={questions}
             gridOptions
-            onCorrect={(q) => learnOnce(kid, 'learnedHanzi', q.id, 'hanzi')}
-            onDone={() => setQuiz(false)}
+            onDone={(score) => {
+              // 挑战全对才算「完成挑战」，配合当天认的新字一起完成积分
+              const perfect = score === questions.length;
+              if (perfect) {
+                if (markHanziChallenge(kid)) {
+                  sfxWin();
+                  confettiBurst(40);
+                }
+              }
+              setQuiz(false);
+            }}
           />
         )}
       </Sheet>
@@ -155,17 +184,21 @@ function CharCard({ kid, h, learned }: { kid: Kid; h: Hanzi; learned: boolean })
         className={`btn ${learned ? 'ghost' : 'primary'} block big`}
         style={{ marginTop: 10 }}
         onClick={() => {
-          // 认识/复习都算一次进度：新字记入已认识列表，旧字直接计数
-          addLearned(kid.id, 'learnedHanzi', h.char);
-          sfxDing();
-          confettiBurst(learned ? 12 : 18);
-          if (bumpStudy(kid, 'hanzi')) {
-            sfxWin();
-            confettiBurst(40);
+          // 只有「当天新认的字」才算进度；复习旧字不重复加积分。
+          // 认新字 + 挑战全对，两项都满足才算完成「认汉字」任务拿到积分。
+          const { isNew, justDone } = markNewHanzi(kid, h.char);
+          if (isNew) {
+            sfxDing();
+            if (justDone) {
+              sfxWin();
+              confettiBurst(40);
+            } else {
+              confettiBurst(18);
+            }
           }
         }}
       >
-        {learned ? '再复习一遍 +1 ⭐' : '我认识啦！+1 ⭐'}
+        {learned ? '再复习一遍' : '我认识啦！'}
       </button>
     </div>
   );
