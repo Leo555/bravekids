@@ -49,6 +49,12 @@ async function route(req: VercelRequest, res: VercelResponse) {
 
   const auth = await authorize(req);
   if (!auth.ok) {
+    if (auth.status === 401) {
+      // 口令错误是预期内的业务状态，不是服务故障：用 200 + body.error
+      // 承载结果，避免网关 / 监控平台把它当成接口异常报警。
+      // 429（限流）/503（未配置）仍保持原状态码，那些确实是需要报警的异常。
+      return res.status(200).json({ error: 'unauthorized', code: 401, message: auth.message });
+    }
     return res.status(auth.status).json({ error: 'unauthorized', message: auth.message });
   }
 

@@ -122,32 +122,41 @@ async function readJson<T>(res: Response): Promise<T | null> {
   }
 }
 
-/** 把 HTTP 失败状态翻译成云端状态；返回 true 表示已处理 */
-function handleFailure(res: Response): boolean {
+/**
+ * 解析响应并翻译成云端状态。
+ *
+ * 口令错误是预期内的业务状态，服务端用 200 + body.error==='unauthorized'
+ * 承载（而不是 HTTP 401），避免网关 / 监控平台把它当成接口故障报警；
+ * 所以这里判断「要不要口令」看的是 body 里的字段，不是 HTTP 状态码。
+ * 429（限流）/503（未配置好）这些才是真正的服务异常，仍看状态码。
+ */
+async function classifyResponse<T>(res: Response): Promise<{ ok: true; data: T | null } | { ok: false }> {
   if (res.status === 503 || res.status === 404 || res.status === 405) {
     update({
       status: 'unavailable',
       message: '服务端还没配置好云端存档（Redis / 家庭口令）',
     });
-    return true;
-  }
-  if (res.status === 401) {
-    update(
-      getPasscode()
-        ? { status: 'unauthorized', message: '家庭口令不正确' }
-        : { status: 'need-passcode', message: undefined },
-    );
-    return true;
+    return { ok: false };
   }
   if (res.status === 429) {
     update({ status: 'error', message: '尝试次数过多，请稍后再试' });
-    return true;
+    return { ok: false };
   }
   if (!res.ok) {
     update({ status: 'error', message: `云端出错了（${res.status}）` });
-    return true;
+    return { ok: false };
   }
-  return false;
+
+  const data = await readJson<T & { error?: string; message?: string }>(res);
+  if (data && data.error === 'unauthorized') {
+    update(
+      getPasscode()
+        ? { status: 'unauthorized', message: data.message || '家庭口令不正确' }
+        : { status: 'need-passcode', message: undefined },
+    );
+    return { ok: false };
+  }
+  return { ok: true, data };
 }
 
 /* ------------------------- 读 ------------------------- */
@@ -166,7 +175,7 @@ function takePrefetched(): Promise<Response> | null {
 
 /**
  * 拉取云端存档。返回 null 表示没拉到（状态里有原因）。
- * 没填口令时也会发一次请求，靠服务端返回的 503 / 401
+ * 没填口令时也会发一次请求，靠响应 body 里的 error 字段
  * 区分「后端没配好」和「需要输入口令」。
  */
 export async function loadKids(): Promise<Partial<Record<KidId, unknown>> | null> {
@@ -185,16 +194,16 @@ export async function loadKids(): Promise<Partial<Record<KidId, unknown>> | null
     return null;
   }
 
-  if (handleFailure(res)) return null;
+  const result = await classifyResponse<{ kids: Partial<Record<KidId, unknown>> }>(res);
+  if (!result.ok) return null;
 
-  const data = await readJson<{ kids: Partial<Record<KidId, unknown>> }>(res);
-  if (!data) {
+  if (!result.data) {
     update({ status: 'unavailable', message: '服务端还没配置好云端存档' });
     return null;
   }
 
   update({ status: 'ready', message: undefined });
-  return data.kids || {};
+  return result.data.kids || {};
 }
 
 /* ------------------------- 写 ------------------------- */
@@ -231,7 +240,8 @@ async function flushQueue(keepalive = false): Promise<void> {
         return;
       }
 
-      if (handleFailure(res)) {
+      const result = await classifyResponse(res);
+      if (!result.ok) {
         update({ unsaved: true });
         schedule(RETRY_MS);
         return;
